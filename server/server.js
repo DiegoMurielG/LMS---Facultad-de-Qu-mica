@@ -23,14 +23,16 @@ app.use(express.json());
 //   })
 // );
 // Configura CORS para tu dominio frontend
-app.use(
-  cors({
-    origin: ["https://lms-facultad-de-quimica-frontend-t7ra.onrender.com", "http://localhost:3000"],
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"], // Configura los encabezados permitidos
-    credentials: true, // Si es necesario, habilita las credenciales
-  })
-);
+// app.use(
+//   cors({
+//     origin: ["https://lms-facultad-de-quimica-frontend-t7ra.onrender.com", "http://localhost:3000"],
+//     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+//     allowedHeaders: ["Content-Type", "Authorization"], // Configura los encabezados permitidos
+//     credentials: true, // Si es necesario, habilita las credenciales
+//   })
+// );
+
+app.use(cors()); // Esto permite todas las solicitudes de cualquier dominio
 
 // Configura las preflight requests explícitamente
 app.options("*", cors()); // Esto permite que todas las rutas respondan a preflight
