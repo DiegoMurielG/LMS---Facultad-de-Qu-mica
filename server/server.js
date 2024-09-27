@@ -22,6 +22,8 @@ app.use(
     credentials: true,
   })
 );
+app.options("*", cors()); // Permitir preflight para todas las rutas
+
 app.use(
   cors({
     origin: ["http://localhost:3000"],
