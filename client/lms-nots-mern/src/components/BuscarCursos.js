@@ -21,7 +21,7 @@ export default function BuscarCursos() {
   // Mostrar tu usario al cargar la página
   useEffect(() => {
     axios
-      .post("http://localhost:5000/api/obtener-role-usuario")
+      .post("https://lms-facultad-de-quimica.onrender.com/api/obtener-role-usuario")
       .then((response) => {
         console.log(response.data);
         if (response.data.Status === 220) {
@@ -77,7 +77,7 @@ export default function BuscarCursos() {
   //   e.preventDefault();
   //   // console.log(`Buscar a ${word_to_search} con el filtro de ${filter}`);
   //   axios
-  //     .post("http://localhost:5000/api/buscar-cursos", {
+  //     .post("https://lms-facultad-de-quimica.onrender.com/api/buscar-cursos", {
   //       palabra_a_buscar: word_to_search,
   //       filtro: filter,
   //     })
@@ -104,7 +104,7 @@ export default function BuscarCursos() {
   //           curso.teachers = "No hay maestros impartiendo el curso.";
   //         } else {
   //           axios
-  //             .post("http://localhost:5000/api/buscar-nombres-con-ids", {
+  //             .post("https://lms-facultad-de-quimica.onrender.com/api/buscar-nombres-con-ids", {
   //               ids: ids_maestrosDelCurso.join(","),
   //             })
   //             .then((nombres) => {
@@ -121,7 +121,7 @@ export default function BuscarCursos() {
   //           curso.enrolled_users = "No hay alumnos inscritos en el curso.";
   //         } else {
   //           axios
-  //             .post("http://localhost:5000/api/buscar-nombres-con-ids", {
+  //             .post("https://lms-facultad-de-quimica.onrender.com/api/buscar-nombres-con-ids", {
   //               ids: ids_alumnosDelCurso.join(","),
   //             })
   //             .then((nombres) => {
@@ -158,7 +158,7 @@ export default function BuscarCursos() {
     e.preventDefault();
 
     axios
-      .post("http://localhost:5000/api/buscar-cursos", {
+      .post("https://lms-facultad-de-quimica.onrender.com/api/buscar-cursos", {
         palabra_a_buscar: word_to_search,
         filtro: filter,
       })
@@ -170,7 +170,7 @@ export default function BuscarCursos() {
 
           const teacherNamesPromise = ids_maestrosDelCurso.length
             ? axios
-                .post("http://localhost:5000/api/buscar-nombres-con-ids", {
+                .post("https://lms-facultad-de-quimica.onrender.com/api/buscar-nombres-con-ids", {
                   ids: ids_maestrosDelCurso.join(","),
                 })
                 .then((response) => {
@@ -184,7 +184,7 @@ export default function BuscarCursos() {
 
           const studentNamesPromise = ids_alumnosDelCurso.length
             ? axios
-                .post("http://localhost:5000/api/buscar-nombres-con-ids", {
+                .post("https://lms-facultad-de-quimica.onrender.com/api/buscar-nombres-con-ids", {
                   ids: ids_alumnosDelCurso.join(","),
                 })
                 .then((response) => {

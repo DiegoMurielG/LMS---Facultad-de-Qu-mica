@@ -11,7 +11,7 @@ export default function AdministrarCursos() {
   // Mostrar tu usario al cargar la página
   useEffect(() => {
     axios
-      .post("http://localhost:5000/api/obtener-role-usuario")
+      .post("https://lms-facultad-de-quimica.onrender.com/api/obtener-role-usuario")
       .then((response) => {
         console.log(response.data);
         if (response.data.Status === 220) {

@@ -18,7 +18,7 @@ export default function BuscarUsuarios() {
   // Mostrar tu usario al cargar la página
   useEffect(() => {
     axios
-      .post("http://localhost:5000/api/obtener-role-usuario")
+      .post("https://lms-facultad-de-quimica.onrender.com/api/obtener-role-usuario")
       .then((response) => {
         console.log(response.data);
         if (response.data.Status === 220) {
@@ -62,7 +62,7 @@ export default function BuscarUsuarios() {
     e.preventDefault();
     // console.log(`Buscar a ${word_to_search} con el filtro de ${filter}`);
     axios
-      .post("http://localhost:5000/api/admin/buscar-usuarios", {
+      .post("https://lms-facultad-de-quimica.onrender.com/api/admin/buscar-usuarios", {
         palabra_a_buscar: word_to_search,
         filtro: filter,
       })

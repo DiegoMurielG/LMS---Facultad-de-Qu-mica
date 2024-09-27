@@ -18,7 +18,9 @@ export default function ExplorarCursos() {
 
   const cargarDatosAlumno = async () => {
     try {
-      const response = await axios.post("http://localhost:5000/api/buscar-usuario-actual");
+      const response = await axios.post(
+        "https://lms-facultad-de-quimica.onrender.com/api/buscar-usuario-actual"
+      );
       if (response.data.Status === 201 && response.data.docs) {
         let alumno = response.data.docs;
         setObj_con_datos_alumno((obj_anterior_con_datos_alumno) => ({
@@ -47,9 +49,12 @@ export default function ExplorarCursos() {
         // Usamos map para obtener un array de promesas
         const promesasCursos = obj_con_datos_alumno.cursos_inscritos.map(
           async (id_curso_inscrito) => {
-            const response = await axios.post("http://localhost:5000/api/buscar-cursos", {
-              palabra_a_buscar: `#: ${id_curso_inscrito}`,
-            });
+            const response = await axios.post(
+              "https://lms-facultad-de-quimica.onrender.com/api/buscar-cursos",
+              {
+                palabra_a_buscar: `#: ${id_curso_inscrito}`,
+              }
+            );
             if (response.data.Status === 301 && response.data.docs[0]) {
               return response.data.docs[0]; // Devuelve el curso si se encuentra
             } else {

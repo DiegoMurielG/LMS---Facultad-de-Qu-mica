@@ -20,7 +20,7 @@ export default function CursoIndividual({ datos_curso, role_usuario }) {
 
   const borrarCurso = (id_curso) => {
     axios
-      .post("http://localhost:5000/api/borrar-curso", {
+      .post("https://lms-facultad-de-quimica.onrender.com/api/borrar-curso", {
         id_curso: id_curso,
         role: role_usuario,
       })

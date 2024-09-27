@@ -27,7 +27,7 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     axios
-      .get("http://localhost:5000/api/admin-dashboard")
+      .get("https://lms-facultad-de-quimica.onrender.com/api/admin-dashboard")
       .then((response) => {
         console.log(response.data);
         // alert(`${response.data.message}`);

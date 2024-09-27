@@ -9,12 +9,15 @@ export default function RecopilarDatos() {
     // Lógica para exportar CSV
     try {
       try {
-        const response = await fetch("http://localhost:5000/api/exportar-respuestas", {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
+        const response = await fetch(
+          "https://lms-facultad-de-quimica.onrender.com/api/exportar-respuestas",
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
 
         if (!response.ok) {
           throw new Error("Error al obtener el archivo CSV");

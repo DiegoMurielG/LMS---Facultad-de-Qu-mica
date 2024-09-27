@@ -13,7 +13,11 @@ export default function RegistrarUnUsuarioPermisoMaestro(props) {
   const handleSubmitPermisoMaestro = (e) => {
     e.preventDefault();
     axios
-      .post("http://localhost:5000/api/registrar-usuario", { nombre, email, password })
+      .post("https://lms-facultad-de-quimica.onrender.com/api/registrar-usuario", {
+        nombre,
+        email,
+        password,
+      })
       .then((response) => {
         // alert(`${response.data.message}`);
         warning = response.data.message;

@@ -27,7 +27,7 @@ export default function RespuestaVideoInteractivo() {
       {/* https://www.w3schools.com/html/html5_video.asp?WT.mc_id=14117-DEV-tuts-article8 */}
       <video width={"320"} height={"240"} controls={true}>
         <source
-          src="http://localhost:5000/public/media/videos/Que_es_la_Quimica.mp4"
+          src="https://lms-facultad-de-quimica.onrender.com/public/media/videos/Que_es_la_Quimica.mp4"
           type="video/mp4"
         />
         Su navegador no soporta videos, cambie a Chrome, Firefox, Opera u Edge para vizualizar el

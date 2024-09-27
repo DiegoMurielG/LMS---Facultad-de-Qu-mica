@@ -386,7 +386,7 @@ export default function RegistrarPregunta({ handleSubmitExterno = null }) {
     construirPregunta();
     let respuestaRegistrarPregunta = "";
     axios
-      .post("http://localhost:5000/api/registrar-pregunta", {
+      .post("https://lms-facultad-de-quimica.onrender.com/api/registrar-pregunta", {
         typeOfQuestion: pregunta.typeOfQuestion,
         position: pregunta.position,
         completed: pregunta.completed,
@@ -409,11 +409,14 @@ export default function RegistrarPregunta({ handleSubmitExterno = null }) {
           // Registrar pregunta en las actividades selecciondas si la asignamos a algunas actividades existentes mediante el InputBuscador de actividades
           pregunta.idTask.forEach((id_actividad) => {
             axios
-              .post("http://localhost:5000/api/aniadir-pregunta-a-actividad", {
-                id_actividad: id_actividad,
-                id_pregunta: pregunta._id,
-                pregunta_totalScore: pregunta.totalScore,
-              })
+              .post(
+                "https://lms-facultad-de-quimica.onrender.com/api/aniadir-pregunta-a-actividad",
+                {
+                  id_actividad: id_actividad,
+                  id_pregunta: pregunta._id,
+                  pregunta_totalScore: pregunta.totalScore,
+                }
+              )
               .catch((error) => {
                 console.error(`Error actualizando la actividad ${id_actividad}.\n${error}`);
               });
@@ -517,7 +520,7 @@ export default function RegistrarPregunta({ handleSubmitExterno = null }) {
   useEffect(() => {
     // Buscar la actividad escrito en la DB
     axios
-      .post("http://localhost:5000/api/buscar-actividades", {
+      .post("https://lms-facultad-de-quimica.onrender.com/api/buscar-actividades", {
         palabra_a_buscar: actividadesBuscadas,
       })
       .then((response) => {

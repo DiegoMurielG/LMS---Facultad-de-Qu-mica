@@ -93,7 +93,6 @@ router.post("/registrar-usuario", (request, response, next) => {
 // Iniciar Sesión
 router.post("/iniciar-sesion", (request, response, next) => {
   const { email, password } = request.body;
-  console.log(`Estoy en iniciar-sesion con ${email}: ${password}`);
   UserModel.findOne({ email: email }).then((user) => {
     if (!user) {
       return response.json({

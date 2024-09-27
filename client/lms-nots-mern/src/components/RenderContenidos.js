@@ -13,9 +13,12 @@ export default function RenderContenidos({
     const fetchContenidos = async () => {
       const contenidosPromises = contenidos.map(async (id_contenido) => {
         try {
-          const response = await axios.post("http://localhost:5000/api/buscar-contenido", {
-            palabra_a_buscar: id_contenido,
-          });
+          const response = await axios.post(
+            "https://lms-facultad-de-quimica.onrender.com/api/buscar-contenido",
+            {
+              palabra_a_buscar: id_contenido,
+            }
+          );
           if (response.data.docs.length > 0) {
             return response.data.docs[0];
           } else {

@@ -90,7 +90,7 @@ export default function RegistrarContenido({
 
     // Buscamos dentro de la DB si el contenido existe
     axios
-      .post("http://localhost:5000/api/registrar-contenido", {
+      .post("https://lms-facultad-de-quimica.onrender.com/api/registrar-contenido", {
         texto: data_contenido,
         tipo: tipo,
         imagenes: imagenesDelContenido,
@@ -122,7 +122,7 @@ export default function RegistrarContenido({
 
     // Buscamos dentro de la DB si el contenido existe
     axios
-      .post("http://localhost:5000/api/editar-contenido", {
+      .post("https://lms-facultad-de-quimica.onrender.com/api/editar-contenido", {
         id_contenido: idContenido,
         texto: data_contenido,
         tipo: tipo,
@@ -177,7 +177,9 @@ export default function RegistrarContenido({
 
   const borrarContenido = () => {
     axios
-      .post("http://localhost:5000/api/borrar-contenido", { id_contenido: idContenido })
+      .post("https://lms-facultad-de-quimica.onrender.com/api/borrar-contenido", {
+        id_contenido: idContenido,
+      })
       .then((response) => {
         if (response.data.Status === 706) {
           setEditandoContenido(false);

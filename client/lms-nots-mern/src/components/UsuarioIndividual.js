@@ -19,7 +19,7 @@ export default function UsuarioIndividual(props) {
     // =========================================================
     // Estado: Por hacer...
     axios
-      .post("http://localhost:5000/api/buscar-nombres-profesores", {
+      .post("https://lms-facultad-de-quimica.onrender.com/api/buscar-nombres-profesores", {
         ids_maestros_inscritos: usuario.maestros_inscritos,
       })
       .then((response) => {
@@ -43,7 +43,7 @@ export default function UsuarioIndividual(props) {
   //     usuario.maestros_inscritos.forEach((maestro) => {
   //       a = async () => {
   //         await axios
-  //           .post("http://localhost:5000/api/buscar-nombre-profesor", {
+  //           .post("https://lms-facultad-de-quimica.onrender.com/api/buscar-nombre-profesor", {
   //             maestro_inscrito: maestro,
   //           })
   //           .then((response) => {
@@ -90,7 +90,7 @@ export default function UsuarioIndividual(props) {
   //       let nombresMaestrosInscritos = []
   //       usuario.maestros_inscritos.forEach((maestro) => {
   //         axios
-  //           .post("http://localhost:5000/api/buscar-nombre-profesor", {
+  //           .post("https://lms-facultad-de-quimica.onrender.com/api/buscar-nombre-profesor", {
   //             maestro_inscrito: maestro,
   //           })
   //           .then((response) => {
@@ -148,7 +148,7 @@ export default function UsuarioIndividual(props) {
 
   const borrarUsuario = (id_usuario) => {
     axios
-      .post("http://localhost:5000/api/borrar-usuario", {
+      .post("https://lms-facultad-de-quimica.onrender.com/api/borrar-usuario", {
         id_usuario: id_usuario,
         role: usuario.role,
       })

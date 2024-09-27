@@ -28,7 +28,7 @@ export default function RegistrarUnUsuarioPermisoAdmin(props) {
       tmpMaestrosSeleccionados.push(maestro._id);
     });
     axios
-      .post("http://localhost:5000/api/registrar-usuario-permiso-admin", {
+      .post("https://lms-facultad-de-quimica.onrender.com/api/registrar-usuario-permiso-admin", {
         nombre: nombre,
         email: email,
         password: password,
@@ -67,7 +67,7 @@ export default function RegistrarUnUsuarioPermisoAdmin(props) {
     setMaestrosBuscados(e.target.value);
     console.log(`maestrosBuscados: ${maestrosBuscados}`);
     axios
-      .post("http://localhost:5000/api/admin/buscar-usuarios", {
+      .post("https://lms-facultad-de-quimica.onrender.com/api/admin/buscar-usuarios", {
         palabra_a_buscar: maestrosBuscados,
         filtro: "maestros",
       })
@@ -102,7 +102,7 @@ export default function RegistrarUnUsuarioPermisoAdmin(props) {
     setCursosBuscados(e.target.value);
     console.log(`cursosBuscados: ${cursosBuscados}`);
     axios
-      .post("http://localhost:5000/api/admin/buscar-usuarios", {
+      .post("https://lms-facultad-de-quimica.onrender.com/api/admin/buscar-usuarios", {
         palabra_a_buscar: cursosBuscados,
         filtro: "cursos",
       })

@@ -22,7 +22,7 @@ export default function Dashboard() {
 
   useEffect(() => {
     axios
-      .get("http://localhost:5000/api/dashboard")
+      .get("https://lms-facultad-de-quimica.onrender.com/api/dashboard")
       .then((response) => {
         // State is used to tell if we succeeded (200) or not (other)
         if (response.data.Status === 200) {

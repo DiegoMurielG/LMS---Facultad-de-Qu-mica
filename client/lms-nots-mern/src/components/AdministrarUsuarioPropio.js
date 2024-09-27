@@ -9,13 +9,13 @@ export default function AdministrarUsuarioPropio() {
   // Mostrar tu usario al cargar la página
   useEffect(() => {
     axios
-      .post("http://localhost:5000/api/obtener-role-usuario")
+      .post("https://lms-facultad-de-quimica.onrender.com/api/obtener-role-usuario")
       .then((response) => {
         console.log(response.data);
         if (response.data.Status === 220) {
           setRole_usuario("admin");
           axios
-            .post("http://localhost:5000/api/admin/buscar-usuario-actual")
+            .post("https://lms-facultad-de-quimica.onrender.com/api/admin/buscar-usuario-actual")
             .then((response) => {
               // setDatos_usuarios([]);
               // setDatos_usuarios(response.data);
@@ -31,7 +31,7 @@ export default function AdministrarUsuarioPropio() {
         } else if (response.data.Status === 221) {
           setRole_usuario("maestro");
           axios
-            .post("http://localhost:5000/api/buscar-usuario-actual")
+            .post("https://lms-facultad-de-quimica.onrender.com/api/buscar-usuario-actual")
             .then((response) => {
               // setDatos_usuarios([]);
               // setDatos_usuarios(response.data);

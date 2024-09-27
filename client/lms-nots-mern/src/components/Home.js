@@ -26,7 +26,7 @@ export default function Home() {
 
   useEffect(() => {
     axios
-      .get("http://localhost:5000/api/home")
+      .get("https://lms-facultad-de-quimica.onrender.com/api/home")
       .then((response) => {
         console.log(response.data);
         // alert(`${response.data.message}`);

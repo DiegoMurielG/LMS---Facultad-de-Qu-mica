@@ -125,28 +125,40 @@ export default function PreguntaIndividual({
     }
 
     try {
-      await axios.post("http://localhost:5000/api/actualizar-nombre-pregunta", {
-        id_pregunta: pregunta._id,
-        nombre_pregunta: nombrePregunta,
-      });
+      await axios.post(
+        "https://lms-facultad-de-quimica.onrender.com/api/actualizar-nombre-pregunta",
+        {
+          id_pregunta: pregunta._id,
+          nombre_pregunta: nombrePregunta,
+        }
+      );
 
-      await axios.post("http://localhost:5000/api/actualizar-posicion-preguntas-curso", {
-        id_pregunta: pregunta._id,
-        idTask: pregunta.idTask,
-        posicion: -1,
-      });
+      await axios.post(
+        "https://lms-facultad-de-quimica.onrender.com/api/actualizar-posicion-preguntas-curso",
+        {
+          id_pregunta: pregunta._id,
+          idTask: pregunta.idTask,
+          posicion: -1,
+        }
+      );
 
-      await axios.post("http://localhost:5000/api/aniadir-actividades-pregunta", {
-        id_pregunta: pregunta._id,
-        actividades_a_aniadir: actividadesSeleccionadas.map(
-          (objeto_actividad) => objeto_actividad._id
-        ),
-      });
+      await axios.post(
+        "https://lms-facultad-de-quimica.onrender.com/api/aniadir-actividades-pregunta",
+        {
+          id_pregunta: pregunta._id,
+          actividades_a_aniadir: actividadesSeleccionadas.map(
+            (objeto_actividad) => objeto_actividad._id
+          ),
+        }
+      );
 
-      await axios.post("http://localhost:5000/api/actualizar-puntuacion-pregunta", {
-        id_pregunta: pregunta._id,
-        puntuacion_total: puntuacionPregunta,
-      });
+      await axios.post(
+        "https://lms-facultad-de-quimica.onrender.com/api/actualizar-puntuacion-pregunta",
+        {
+          id_pregunta: pregunta._id,
+          puntuacion_total: puntuacionPregunta,
+        }
+      );
     } catch (error) {
       console.error("Error actualizando la pregunta:", error);
     }
@@ -176,18 +188,21 @@ export default function PreguntaIndividual({
     alert("Borrando pregunta...");
     // Movemos la pregunta al final para que las preguntas que no se borrarán cambien de posición
     try {
-      await axios.post("http://localhost:5000/api/actualizar-posicion-preguntas-curso", {
-        id_pregunta: pregunta._id,
-        idTask: pregunta.idTask,
-        posicion: -1,
-      });
+      await axios.post(
+        "https://lms-facultad-de-quimica.onrender.com/api/actualizar-posicion-preguntas-curso",
+        {
+          id_pregunta: pregunta._id,
+          idTask: pregunta.idTask,
+          posicion: -1,
+        }
+      );
     } catch (error) {
       console.error("Error actualizando la posición de la pregunta.", error);
     }
 
     try {
       await axios
-        .post("http://localhost:5000/api/borrar-pregunta", {
+        .post("https://lms-facultad-de-quimica.onrender.com/api/borrar-pregunta", {
           id_pregunta: pregunta._id,
           idTask: pregunta.idTask,
         })
@@ -209,7 +224,7 @@ export default function PreguntaIndividual({
   // Función para buscar actividades
   // const buscarActividades = async (id_task) => {
   //   try {
-  //     const response = await axios.post("http://localhost:5000/api/buscar-actividades", {
+  //     const response = await axios.post("https://lms-facultad-de-quimica.onrender.com/api/buscar-actividades", {
   //       palabra_a_buscar: `#: ${id_task}`,
   //     });
 
@@ -223,10 +238,13 @@ export default function PreguntaIndividual({
   // Función para borrar la actividad específica
   const handleRemoveThisTask = async (id_task_to_errase) => {
     try {
-      await axios.post("http://localhost:5000/api/eliminar-actividad-de-pregunta", {
-        id_pregunta: pregunta._id,
-        id_actividad: id_task_to_errase,
-      });
+      await axios.post(
+        "https://lms-facultad-de-quimica.onrender.com/api/eliminar-actividad-de-pregunta",
+        {
+          id_pregunta: pregunta._id,
+          id_actividad: id_task_to_errase,
+        }
+      );
     } catch (error) {
       console.error(`Error buscando y eliminando la actividad '${id_task_to_errase}': ${error}`);
       return "Error al buscar y eliminar la actividad."; // En caso de error, devuelve un mensaje
@@ -282,7 +300,7 @@ export default function PreguntaIndividual({
   useEffect(() => {
     // Buscar la actividad escrito en la DB
     axios
-      .post("http://localhost:5000/api/buscar-actividades", {
+      .post("https://lms-facultad-de-quimica.onrender.com/api/buscar-actividades", {
         palabra_a_buscar: actividadesBuscadas,
       })
       .then((response) => {

@@ -23,7 +23,7 @@ export default function CrearUnCurso() {
   axios.defaults.withCredentials = true;
   useEffect(() => {
     axios
-      .post("http://localhost:5000/api/obtener-role-usuario")
+      .post("https://lms-facultad-de-quimica.onrender.com/api/obtener-role-usuario")
       .then((response) => {
         if (response.data.Status === 220) {
           setRoleSesionUsuario("admin");
@@ -51,7 +51,7 @@ export default function CrearUnCurso() {
     });
 
     axios
-      .post("http://localhost:5000/api/crear-curso", {
+      .post("https://lms-facultad-de-quimica.onrender.com/api/crear-curso", {
         nombre: nombre,
         temas: temas,
         descripcion: descripcion,
@@ -97,7 +97,7 @@ export default function CrearUnCurso() {
     setMaestrosBuscados(e.target.value);
     console.log(`maestrosBuscados: ${maestrosBuscados}`);
     axios
-      .post("http://localhost:5000/api/admin/buscar-usuarios", {
+      .post("https://lms-facultad-de-quimica.onrender.com/api/admin/buscar-usuarios", {
         palabra_a_buscar: maestrosBuscados,
         filtro: "maestros",
       })
@@ -114,7 +114,7 @@ export default function CrearUnCurso() {
     setAlumnosBuscados(e.target.value);
     console.log(`alumnosBuscados: ${alumnosBuscados}`);
     axios
-      .post("http://localhost:5000/api/admin/buscar-usuarios", {
+      .post("https://lms-facultad-de-quimica.onrender.com/api/admin/buscar-usuarios", {
         palabra_a_buscar: alumnosBuscados,
         filtro: "alumnos",
       })

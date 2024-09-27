@@ -17,7 +17,9 @@ export default function EditarUsuario() {
 
   const obtenerDatausuario = () => {
     axios
-      .post("http://localhost:5000/api/obtener-data-usuario", { id_usuario: params.id_usuario })
+      .post("https://lms-facultad-de-quimica.onrender.com/api/obtener-data-usuario", {
+        id_usuario: params.id_usuario,
+      })
       .then((response) => {
         console.log(response);
         const data_usuario = response.data.docs;
@@ -65,7 +67,7 @@ export default function EditarUsuario() {
 
   const editarUsuario = () => {
     axios
-      .post("http://localhost:5000/api/actualizar-data-usuario", {
+      .post("https://lms-facultad-de-quimica.onrender.com/api/actualizar-data-usuario", {
         id_usuario: params.id_usuario,
         nombre: nombre,
         email: email,
@@ -96,7 +98,7 @@ export default function EditarUsuario() {
 
   const borrarUsuario = (id_usuario, role_usuario) => {
     axios
-      .post("http://localhost:5000/api/borrar-usuario", {
+      .post("https://lms-facultad-de-quimica.onrender.com/api/borrar-usuario", {
         id_usuario: id_usuario,
         role: role_usuario,
       })
@@ -121,7 +123,7 @@ export default function EditarUsuario() {
 
   const handleReturnToDashboard = () => {
     axios
-      .post("http://localhost:5000/api/obtener-role-usuario")
+      .post("https://lms-facultad-de-quimica.onrender.com/api/obtener-role-usuario")
       .then((response) => {
         if (response.data.Status === 220) {
           navigate("/admin-dashboard/administrar-usuarios");
@@ -143,7 +145,7 @@ export default function EditarUsuario() {
       // alert(email);
       console.log(`email a comparar ${email}`);
       axios
-        .post("http://localhost:5000/api/puede-editar-descrip-personal", {
+        .post("https://lms-facultad-de-quimica.onrender.com/api/puede-editar-descrip-personal", {
           email: email,
         })
         .then((response) => {
