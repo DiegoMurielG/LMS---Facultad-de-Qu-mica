@@ -81,7 +81,7 @@ export default function RenderContenidos({
           }}
           key={`img-${i}`}
           name={arreglo_objetos_imagenes[i]?.name}
-          src={`https://lms-facultad-de-quimica.onrender.com/${arreglo_objetos_imagenes[i]?.path}`}
+          src={`https://lms-facultad-de-quimica.onrender.com${arreglo_objetos_imagenes[i]?.path}`}
           alt={arreglo_objetos_imagenes[i]?.name}
         />
       );
