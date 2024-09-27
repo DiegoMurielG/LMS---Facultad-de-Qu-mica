@@ -15,14 +15,25 @@ const PORT = 5000;
 const app = express();
 // Configuramos a express para que convierta los datos que recive a formato json
 app.use(express.json());
+// app.use(
+//   cors({
+//     origin: ["https://lms-facultad-de-quimica-frontend-t7ra.onrender.com", "http://localhost:3000"],
+//     methods: ["GET", "POST"],
+//     credentials: true,
+//   })
+// );
+// Configura CORS para tu dominio frontend
 app.use(
   cors({
     origin: ["https://lms-facultad-de-quimica-frontend-t7ra.onrender.com", "http://localhost:3000"],
-    methods: ["GET", "POST"],
-    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"], // Configura los encabezados permitidos
+    credentials: true, // Si es necesario, habilita las credenciales
   })
 );
-app.options("*", cors()); // Permitir preflight para todas las rutas
+
+// Configura las preflight requests explícitamente
+app.options("*", cors()); // Esto permite que todas las rutas respondan a preflight
 
 // app.use(
 //   cors({
