@@ -4,7 +4,8 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "nodemon server.js"
+    "start": "nodemon server.js",
+    "start-for-render": "export PATH=/opt/render/project/src/server/node_modules/.bin:$PATH && npm start"
   },
   "keywords": [],
   "author": "",
