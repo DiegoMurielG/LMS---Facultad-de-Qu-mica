@@ -1,4 +1,4 @@
-#Git steps to connect and update yur repo
+# Git steps to connect and update yur repo
 
 0. cd repository/dir/in-this-case/LMS-noTS-MERN
 1. git init        (it will initialize the repo that's on the curren location, and if none is present, it will initialize one here)
