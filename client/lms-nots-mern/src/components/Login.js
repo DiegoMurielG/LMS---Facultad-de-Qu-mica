@@ -12,7 +12,7 @@ export default function Login() {
   const handleSubmit = (e) => {
     e.preventDefault();
     axios
-      .post("http://localhost:5000/api/iniciar-sesion", { email, password })
+      .post("https://lms-facultad-de-quimica.onrender.com/api/iniciar-sesion", { email, password })
       .then((response) => {
         setWarning(response.data.message);
         // console.log(response.data);
