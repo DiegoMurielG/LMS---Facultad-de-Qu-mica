@@ -17,20 +17,20 @@ const app = express();
 app.use(express.json());
 app.use(
   cors({
-    origin: ["https://lms-facultad-de-quimica-frontend-t7ra.onrender.com"],
+    origin: ["https://lms-facultad-de-quimica-frontend-t7ra.onrender.com", "http://localhost:3000"],
     methods: ["GET", "POST"],
     credentials: true,
   })
 );
 app.options("*", cors()); // Permitir preflight para todas las rutas
 
-app.use(
-  cors({
-    origin: ["http://localhost:3000"],
-    methods: ["GET", "POST"],
-    credentials: true,
-  })
-);
+// app.use(
+//   cors({
+//     origin: ["http://localhost:3000"],
+//     methods: ["GET", "POST"],
+//     credentials: true,
+//   })
+// );
 app.use(cookieParser());
 
 // Para mandar archivos desde el servidor al front-end
