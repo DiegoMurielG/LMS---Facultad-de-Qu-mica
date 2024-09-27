@@ -27,7 +27,7 @@ app.use(
     origin: ["https://lms-facultad-de-quimica-frontend-t7ra.onrender.com", "http://localhost:3000"],
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"], // Configura los encabezados permitidos
-    credentials: true, // Si es necesario, habilita las credenciales
+    credentials: true, // Permitir credenciales (cookies)
   })
 );
 

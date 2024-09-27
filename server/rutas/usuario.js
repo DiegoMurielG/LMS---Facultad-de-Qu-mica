@@ -117,6 +117,15 @@ router.post("/iniciar-sesion", (request, response, next) => {
         secretTokenKey,
         { expiresIn: "1d" }
       );
+
+      // Establecer la cookie con las opciones adecuadas para un entorno cross-origin
+      response.cookie("token", token, {
+        httpOnly: true, // Solo accesible por el servidor
+        secure: true, // Solo se enviará en conexiones HTTPS (asegúrate de usar HTTPS)
+        sameSite: "None", // Permitir que la cookie sea accesible en diferentes dominios
+        maxAge: 24 * 60 * 60 * 1000, // La cookie expira en 1 día
+      });
+
       // Creamos una Cookie llamada token que tiene el token del usuario
       response.cookie("token", token);
       return response.json({
