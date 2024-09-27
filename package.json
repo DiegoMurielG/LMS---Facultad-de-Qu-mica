@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "build": "npm install && npm install --prefix client && npm run build --prefix client"
+    "build": "npm install && npm install --prefix client/lms-nots-mern && npm run build --prefix client/lms-nots-mern"
   },
   "dependencies": {
     "csv-stringify": "^6.5.1"
