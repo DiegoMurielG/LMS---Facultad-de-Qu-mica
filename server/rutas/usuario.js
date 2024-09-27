@@ -127,7 +127,7 @@ router.post("/iniciar-sesion", (request, response, next) => {
       });
 
       // Creamos una Cookie llamada token que tiene el token del usuario
-      response.cookie("token", token);
+      // response.cookie("token", token);
       return response.json({
         Status: 200,
         message: "Login Successfully",
