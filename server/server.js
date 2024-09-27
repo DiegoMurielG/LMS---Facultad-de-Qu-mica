@@ -61,7 +61,7 @@ app.use("/public", express.static(path.join(__dirname, "public")));
 
 // mongoose.connect("mongodb://127.0.0.1:27017/lmsquimica");
 mongoose.connect(
-  "mongodb+srv://murielgonzalezdiego:JOKeJMWDFAEtWvFU@cluster.lnhxj.mongodb.net/?retryWrites=true&w=majority&appName=Cluster/lmsquimica"
+  "mongodb+srv://murielgonzalezdiego:JOKeJMWDFAEtWvFU@cluster.lnhxj.mongodb.net/?retryWrites=true&w=majority&appName=Cluster"
 );
 // Creamos una conexión y la guardamos en el 'objetodb'
 const objetodb = mongoose.connection;
