@@ -35,6 +35,17 @@ app.use(
 // Configura las preflight requests explícitamente
 app.options("*", cors()); // Esto permite que todas las rutas respondan a preflight
 
+app.options("/api/*", (req, res) => {
+  res.setHeader(
+    "Access-Control-Allow-Origin",
+    "https://lms-facultad-de-quimica-frontend-t7ra.onrender.com"
+  );
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  res.setHeader("Access-Control-Allow-Credentials", "true"); // Si es necesario
+  res.sendStatus(204); // Sin contenido
+});
+
 // app.use(
 //   cors({
 //     origin: ["http://localhost:3000"],
