@@ -5,7 +5,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "nodemon server.js",
-    "start-for-render": "export PATH=/opt/render/project/src/server/node_modules/.bin:$PATH && node server.js"
+    "start-for-render": "node server.js"
   },
   "keywords": [],
   "author": "",
