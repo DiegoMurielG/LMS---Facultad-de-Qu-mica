@@ -35,8 +35,8 @@ export default function Login() {
   };
 
   return (
-    <div className="d-flex justify-content-center align-items-center bg-secondary vh-100">
-      <div className="bg-dark p-3 rounded w-25">
+    <div className="d-flex flex-column justify-content-center align-items-center bg-secondary vh-100">
+      <div className="bg-dark p-3 rounded w-25 mb-3">
         <h2>Iniciar sesión</h2>
         <form onSubmit={handleSubmit}>
           {/* Correo */}
@@ -83,6 +83,16 @@ export default function Login() {
           className="btn btn-dark btn-outline-light w-100 rounded-50 my-1">
           Registrarse
         </Link> */}
+      </div>
+      <div className="bg-body-tertiary p-3 rounded w-50">
+        <p className="text-warning-emphasis">
+          Para que la app funcione correctamente, configure su navegador para aceptar cookies de
+          terceros.
+        </p>
+        <p className="text-info-emphasis">
+          En su navegador vaya a configuración &gt; cookies &gt; cookies de terceros &gt; Permitir
+          coockies de terceros
+        </p>
       </div>
     </div>
   );
