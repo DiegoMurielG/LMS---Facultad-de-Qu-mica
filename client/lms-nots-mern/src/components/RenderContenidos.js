@@ -51,47 +51,90 @@ export default function RenderContenidos({
     let tmpTexto = texto;
     let cantidadDeImagenes = [...texto.matchAll(/<img name="/gm)].length;
     let tamanioInicioEtiquetaImg = 5;
+    let cantidadDeLinks = [...texto.matchAll(/<a href="/gm)].length;
+    let tamanioInicioEtiquetaLink = 3;
+    let tamanioFinAbiertoEtiquetaLink = 3; //" >
+    let tamanioEtiquetaCierreLink = 4; //</a>
     let tamanioNombre = 6;
     let tamanioSrc = 7;
     let tamanioFinSrc = 4;
 
-    if (cantidadDeImagenes <= 0) {
+    if (cantidadDeImagenes <= 0 && cantidadDeLinks <= 0) {
       return <p>{texto}</p>;
     }
 
+    const cantidadObjetosARenderizar = cantidadDeImagenes + cantidadDeLinks;
+
     // Si el contenido tiene imágenes
-    for (let i = 0; i < cantidadDeImagenes; i++) {
-      let indexNombreImg = tmpTexto.search(/name="/) + tamanioNombre;
-      let indexFinNombreImg = tmpTexto.search(/" src="/);
-      let indexSrcImg = indexFinNombreImg + tamanioSrc;
-      let indexFinSrcImg = tmpTexto.search(/" \/>/);
-      // Agregamos el texto hasta antes de la imágen
-      arreglo_objetos_contenido.push(
-        <p>{tmpTexto.slice(0, indexNombreImg - (tamanioInicioEtiquetaImg + tamanioNombre))}</p>
-      );
+    for (let i = 0; i < cantidadObjetosARenderizar; i++) {
+      // Buscamos coincidencia por coincidencia y según el resultado renderizamos un objeto u otro.
+      let coincidenciaBusquedaObjetoARenderizar = tmpTexto.search(/name="|href="/);
+      if (tmpTexto[coincidenciaBusquedaObjetoARenderizar + 1] == "n") {
+        // Tenemos una img porque inicia con name=""
+        let indexNombreImg = tmpTexto.search(/name="/) + tamanioNombre;
+        let indexFinNombreImg = tmpTexto.search(/" src="/);
+        let indexSrcImg = indexFinNombreImg + tamanioSrc;
+        let indexFinSrcImg = tmpTexto.search(/" \/>/);
+        // Agregamos el texto hasta antes de la imágen
+        arreglo_objetos_contenido.push(
+          <p>{tmpTexto.slice(0, indexNombreImg - (tamanioInicioEtiquetaImg + tamanioNombre))}</p>
+        );
 
-      // Agregamos la imágen
-      arreglo_objetos_contenido.push(
-        <img
-          style={{
-            width: "100%",
-            maxWidth: "320px",
-            height: "100%",
-            maxHeight: "180px",
-          }}
-          key={`img-${i}`}
-          name={arreglo_objetos_imagenes[i]?.name}
-          src={`https://lms-facultad-de-quimica.onrender.com${arreglo_objetos_imagenes[i]?.path}`}
-          alt={arreglo_objetos_imagenes[i]?.name}
-        />
-      );
+        // Agregamos la imágen
+        arreglo_objetos_contenido.push(
+          <img
+            style={{
+              width: "100%",
+              maxWidth: "320px",
+              height: "100%",
+              maxHeight: "180px",
+            }}
+            key={`img-${i}`}
+            name={arreglo_objetos_imagenes[i]?.name}
+            src={`https://lms-facultad-de-quimica.onrender.com${arreglo_objetos_imagenes[i]?.path}`}
+            alt={arreglo_objetos_imagenes[i]?.name}
+          />
+        );
 
-      tmpTexto = tmpTexto.slice(indexFinSrcImg + tamanioFinSrc);
-    }
+        tmpTexto = tmpTexto.slice(indexFinSrcImg + tamanioFinSrc);
+        // }
 
-    // Si ya no hay imágenes y queda texto al final, agregarlo
-    if (tmpTexto != "") {
-      arreglo_objetos_contenido.push(<p>{tmpTexto}</p>);
+        // Si ya no hay imágenes y queda texto al final, agregarlo
+        if (tmpTexto != "") {
+          arreglo_objetos_contenido.push(<p>{tmpTexto}</p>);
+        }
+      } else {
+        // Tenemos un link porque inicia conr href=""
+        let indexHrefLink = tmpTexto.search(/href="/) + tamanioNombre;
+        let indexFinEtiquetaAbiertaLink = tmpTexto.search(/" >/);
+        // let indexSrcImg = indexFinNombreImg + tamanioSrc;
+        let indexFinEtiquetaCierreLink = tmpTexto.search(/<\/a>/);
+        // Agregamos el texto hasta antes del link
+        arreglo_objetos_contenido.push(
+          <p>{tmpTexto.slice(0, indexHrefLink - (tamanioInicioEtiquetaLink + tamanioNombre))}</p>
+        );
+
+        // Agregamos el link
+        arreglo_objetos_contenido.push(
+          <a
+            className="link-opacity-75-hover"
+            key={`link-${i}`}
+            href={tmpTexto.slice(indexHrefLink, indexFinEtiquetaAbiertaLink)}>
+            {tmpTexto.slice(
+              indexFinEtiquetaAbiertaLink + tamanioFinAbiertoEtiquetaLink,
+              indexFinEtiquetaCierreLink
+            )}
+          </a>
+        );
+
+        tmpTexto = tmpTexto.slice(indexFinEtiquetaCierreLink + tamanioEtiquetaCierreLink);
+        // }
+
+        // Si ya no hay links y queda texto al final, agregarlo
+        if (tmpTexto != "") {
+          arreglo_objetos_contenido.push(<p>{tmpTexto}</p>);
+        }
+      }
     }
 
     return arreglo_objetos_contenido;
