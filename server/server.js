@@ -9,9 +9,10 @@ const path = require("path");
 const UserModel = require("./models/User.js");
 const rutaUsuarios = require("./rutas/usuario.js");
 const rutaCursos = require("./rutas/curso.js");
+require("dotenv").config(); // Importar dotenv para cargar las variables de entorno
 
 // Configurar la app
-const PORT = 5000;
+const PORT = process.env.PORT || 5000;
 const app = express();
 // Configuramos a express para que convierta los datos que recive a formato json
 // app.use(
@@ -59,10 +60,26 @@ app.use(cookieParser());
 // De esta forma configuramos el servidor para servir archivos estáticos desde la carpeta "public"
 app.use("/public", express.static(path.join(__dirname, "public")));
 
+// Local Test DB
 // mongoose.connect("mongodb://127.0.0.1:27017/lmsquimica");
-mongoose.connect(
-  "mongodb+srv://murielgonzalezdiego:JOKeJMWDFAEtWvFU@cluster.lnhxj.mongodb.net/lmsquimica?retryWrites=true&w=majority&appName=Cluster"
-);
+
+// Selecciona la URI de MongoDB según el entorno
+const MONGO_URI =
+  process.env.NODE_ENVIROMENT === "production"
+    ? process.env.MONGO_URI_PRODUCTION
+    : process.env.MONGO_URI_LOCAL;
+
+mongoose.connect(MONGO_URI);
+console.log("MONGO_URI: ", MONGO_URI);
+
+// Local Development
+// mongoose.connect("mongodb://localhost:27017/");
+
+// Production DB
+// mongoose.connect(
+//   "mongodb+srv://murielgonzalezdiego:JOKeJMWDFAEtWvFU@cluster.lnhxj.mongodb.net/lmsquimica?retryWrites=true&w=majority&appName=Cluster"
+// );
+
 // Creamos una conexión y la guardamos en el 'objetodb'
 const objetodb = mongoose.connection;
 

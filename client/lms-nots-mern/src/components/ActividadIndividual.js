@@ -40,6 +40,11 @@ export default function ActividadIndividual({
   const [preguntasDisponibles, setPreguntasDisponibles] = useState([]);
   const [preguntasSeleccionadas, setPreguntasSeleccionadas] = useState([]);
 
+  const api = axios.create({
+    baseURL: process.env.REACT_APP_API_URL, // Usa la URL de la variable de entorno
+    withCredentials: true, // Si necesitas enviar cookies
+  });
+
   const handleToggleVerActividad = (e) => {
     e.preventDefault();
     setActividadSeVe(!actividadSeVe);
@@ -68,8 +73,8 @@ export default function ActividadIndividual({
   // Búsqueda de secciones en tiempo real por input del usuario
   useEffect(() => {
     // Buscar la sección escrito en la DB
-    axios
-      .post("https://lms-facultad-de-quimica.onrender.com/api/buscar-secciones", {
+    api
+      .post("/buscar-secciones", {
         palabra_a_buscar: seccionesBuscadas,
       })
       .then((response) => {
@@ -114,8 +119,8 @@ export default function ActividadIndividual({
   // Búsqueda de preguntas en tiempo real por input del usuario
   useEffect(() => {
     // Buscar la pregunta escrita en la DB
-    axios
-      .post("https://lms-facultad-de-quimica.onrender.com/api/buscar-preguntas", {
+    api
+      .post("/buscar-preguntas", {
         palabra_a_buscar: preguntasBuscadas,
       })
       .then((response) => {
@@ -160,13 +165,10 @@ export default function ActividadIndividual({
   // Función para borrar la sección específica
   const handleRemoveThisSection = async (id_section_to_errase) => {
     try {
-      await axios.post(
-        "https://lms-facultad-de-quimica.onrender.com/api/eliminar-seccion-de-actividad",
-        {
-          id_actividad: actividad._id,
-          id_section: id_section_to_errase,
-        }
-      );
+      await api.post("/eliminar-seccion-de-actividad", {
+        id_actividad: actividad._id,
+        id_section: id_section_to_errase,
+      });
     } catch (error) {
       console.error(`Error buscando y eliminando la actividad '${id_section_to_errase}': ${error}`);
       return "Error al buscar y eliminar la actividad."; // En caso de error, devuelve un mensaje
@@ -177,13 +179,10 @@ export default function ActividadIndividual({
   // Función para borrar la pregunta específica
   const handleRemoveThisPregunta = async (id_pregunta_to_errase) => {
     try {
-      await axios.post(
-        "https://lms-facultad-de-quimica.onrender.com/api/eliminar-pregunta-de-actividad",
-        {
-          id_actividad: actividad._id,
-          id_pregunta: id_pregunta_to_errase,
-        }
-      );
+      await api.post("/eliminar-pregunta-de-actividad", {
+        id_actividad: actividad._id,
+        id_pregunta: id_pregunta_to_errase,
+      });
     } catch (error) {
       console.error(`Error buscando y eliminando la pregunta '${id_pregunta_to_errase}': ${error}`);
       return "Error al buscar y eliminar la pregunta."; // En caso de error, devuelve un mensaje
@@ -355,47 +354,35 @@ export default function ActividadIndividual({
     }
 
     try {
-      await axios.post(
-        "https://lms-facultad-de-quimica.onrender.com/api/actualizar-nombre-actividad",
-        {
-          id_actividad: actividad._id,
-          nombre_actividad: nombreActividad,
-        }
-      );
+      await api.post("/actualizar-nombre-actividad", {
+        id_actividad: actividad._id,
+        nombre_actividad: nombreActividad,
+      });
 
       // =================================================
       // Actualizando lo referente a las secciones
       // =================================================
 
-      await axios.post(
-        "https://lms-facultad-de-quimica.onrender.com/api/actualizar-posicion-actividad-seccion-desde-actividad",
-        {
-          id_actividad: actividad._id,
-          // id_seccion: actividad,
-          posicion: posicionActividad,
-        }
-      );
+      await api.post("/actualizar-posicion-actividad-seccion-desde-actividad", {
+        id_actividad: actividad._id,
+        // id_seccion: actividad,
+        posicion: posicionActividad,
+      });
 
       // Falta añadir el id de la nueva sección al campo idSection de la actividad a actualizar
-      await axios.post(
-        "https://lms-facultad-de-quimica.onrender.com/api/aniadir-secciones-actividad",
-        {
-          id_actividad: actividad._id,
-          secciones_a_aniadir: seccionesSeleccionadas.map((objeto_seccion) => objeto_seccion._id),
-        }
-      );
+      await api.post("/aniadir-secciones-actividad", {
+        id_actividad: actividad._id,
+        secciones_a_aniadir: seccionesSeleccionadas.map((objeto_seccion) => objeto_seccion._id),
+      });
 
       // =================================================
       // Actualizando lo referente a las preguntas
       // =================================================
 
-      await axios.post(
-        "https://lms-facultad-de-quimica.onrender.com/api/aniadir-preguntas-actividad",
-        {
-          id_actividad: actividad._id,
-          preguntas_a_aniadir: preguntasSeleccionadas.map((objeto_pregunta) => objeto_pregunta._id),
-        }
-      );
+      await api.post("/aniadir-preguntas-actividad", {
+        id_actividad: actividad._id,
+        preguntas_a_aniadir: preguntasSeleccionadas.map((objeto_pregunta) => objeto_pregunta._id),
+      });
 
       setRerenderPorActualizacionDeDatos(true);
     } catch (error) {
@@ -426,21 +413,18 @@ export default function ActividadIndividual({
     alert("Borrando actividad...");
     // // Movemos la actividad al final para que las secciones que no se borrarán cambien de posición
     try {
-      await axios.post(
-        "https://lms-facultad-de-quimica.onrender.com/api/actualizar-posicion-actividades-curso",
-        {
-          id_actividad: actividad._id,
-          id_secciones: actividad.idSection,
-          posicion: -1,
-        }
-      );
+      await api.post("/actualizar-posicion-actividades-curso", {
+        id_actividad: actividad._id,
+        id_secciones: actividad.idSection,
+        posicion: -1,
+      });
     } catch (error) {
       console.error("Error actualizando la posición de la actividad.", error);
     }
 
     try {
-      await axios
-        .post("https://lms-facultad-de-quimica.onrender.com/api/borrar-actividad", {
+      await api
+        .post("/borrar-actividad", {
           id_actividad: actividad._id,
           // id_secciones: actividad.idSection,
           // id_tasks: id_tasks,

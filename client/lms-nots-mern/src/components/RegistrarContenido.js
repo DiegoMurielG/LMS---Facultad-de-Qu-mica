@@ -21,6 +21,11 @@ export default function RegistrarContenido({
   // const [idContenido, setIdContenido] = useState("");
   const [editandoContenido, setEditandoContenido] = useState(false);
 
+  const api = axios.create({
+    baseURL: process.env.REACT_APP_API_URL, // Usa la URL de la variable de entorno
+    withCredentials: true, // Si necesitas enviar cookies
+  });
+
   // Al cargar el componente, ver si hay o no contenido
   useEffect(() => {
     if (data_contenido) {
@@ -82,18 +87,37 @@ export default function RegistrarContenido({
     return imagenesDelContenido;
   }
 
+  function obtenerObjetoConLinksEnContenido(data_contenido) {
+    let linksDelContenido = [];
+    let tmpData_contenido = data_contenido;
+    let regexLink = /<a href="(.*?)">(.*?)<\/a>/gm;
+
+    let match;
+    while ((match = regexLink.exec(tmpData_contenido)) !== null) {
+      linksDelContenido.push({
+        href: match[1], // Captura el valor de href
+        text: match[2], // Captura el texto dentro del <a>
+      });
+    }
+
+    console.log(`linksDelContenido: ${JSON.stringify(linksDelContenido)}`);
+    return linksDelContenido;
+  }
+
   const handleRegistrarContenido = (e) => {
     e.preventDefault();
 
     let imagenesDelContenido = obtenerObjetoConImagenesEnContenido(data_contenido);
+    let linksDelContenido = obtenerObjetoConLinksEnContenido(data_contenido);
     // tmpData_contenido.forEach((caracter) => {});
 
     // Buscamos dentro de la DB si el contenido existe
-    axios
-      .post("https://lms-facultad-de-quimica.onrender.com/api/registrar-contenido", {
+    api
+      .post("/registrar-contenido", {
         texto: data_contenido,
         tipo: tipo,
         imagenes: imagenesDelContenido,
+        links: linksDelContenido,
       })
       .then((response) => {
         if (response.data.Status === 705) {
@@ -111,6 +135,29 @@ export default function RegistrarContenido({
       .catch((error) => {
         console.error(`Error creando el contenido.\n${error}`);
       });
+    // axios
+    //   .post("https://lms-facultad-de-quimica.onrender.com/api/registrar-contenido", {
+    //     texto: data_contenido,
+    //     tipo: tipo,
+    //     imagenes: imagenesDelContenido,
+    //     links: linksDelContenido,
+    //   })
+    //   .then((response) => {
+    //     if (response.data.Status === 705) {
+    //       setRegistrandoContenido(false);
+    //       setEditandoContenido(true);
+    //       setIdContenido(response.data.content_id);
+    //       Swal.fire({
+    //         title: response.data.message,
+    //         showCancelButton: false,
+    //         confirmButtonText: "Continuar",
+    //         icon: "success",
+    //       });
+    //     }
+    //   })
+    //   .catch((error) => {
+    //     console.error(`Error creando el contenido.\n${error}`);
+    //   });
     // Si existe, lo actualizamos
     // Si no existe, lo creamos
   };
@@ -119,14 +166,16 @@ export default function RegistrarContenido({
     e.preventDefault();
 
     let imagenesDelContenido = obtenerObjetoConImagenesEnContenido(data_contenido);
+    let linksDelContenido = obtenerObjetoConLinksEnContenido(data_contenido);
 
     // Buscamos dentro de la DB si el contenido existe
-    axios
-      .post("https://lms-facultad-de-quimica.onrender.com/api/editar-contenido", {
+    api
+      .post("/editar-contenido", {
         id_contenido: idContenido,
         texto: data_contenido,
         tipo: tipo,
         imagenes: imagenesDelContenido,
+        links: linksDelContenido,
       })
       .then((response) => {
         if (response.data.Status === 707) {
@@ -141,6 +190,27 @@ export default function RegistrarContenido({
       .catch((error) => {
         console.error(`Error actualizando el contenido.\n${error}`);
       });
+    // // Buscamos dentro de la DB si el contenido existe
+    // axios
+    //   .post("https://lms-facultad-de-quimica.onrender.com/api/editar-contenido", {
+    //     id_contenido: idContenido,
+    //     texto: data_contenido,
+    //     tipo: tipo,
+    //     imagenes: imagenesDelContenido,
+    //   })
+    //   .then((response) => {
+    //     if (response.data.Status === 707) {
+    //       Swal.fire({
+    //         title: response.data.message,
+    //         showCancelButton: false,
+    //         confirmButtonText: "Continuar",
+    //         icon: "success",
+    //       });
+    //     }
+    //   })
+    //   .catch((error) => {
+    //     console.error(`Error actualizando el contenido.\n${error}`);
+    //   });
   };
 
   const handleVaciarContenido = (e) => {
@@ -176,8 +246,8 @@ export default function RegistrarContenido({
   };
 
   const borrarContenido = () => {
-    axios
-      .post("https://lms-facultad-de-quimica.onrender.com/api/borrar-contenido", {
+    api
+      .post("/borrar-contenido", {
         id_contenido: idContenido,
       })
       .then((response) => {
@@ -198,6 +268,28 @@ export default function RegistrarContenido({
       .catch((error) => {
         console.error(`Error borrando el contenido.\n${error}`);
       });
+    // axios
+    //   .post("https://lms-facultad-de-quimica.onrender.com/api/borrar-contenido", {
+    //     id_contenido: idContenido,
+    //   })
+    //   .then((response) => {
+    //     if (response.data.Status === 706) {
+    //       setEditandoContenido(false);
+    //       setRegistrandoContenido(true);
+    //       setAgregandoContenido(false);
+    //       setIdContenido("");
+    //       setData_contenido("");
+    //       Swal.fire({
+    //         title: response.data.message,
+    //         showCancelButton: false,
+    //         confirmButtonText: "Continuar",
+    //         icon: "success",
+    //       });
+    //     }
+    //   })
+    //   .catch((error) => {
+    //     console.error(`Error borrando el contenido.\n${error}`);
+    //   });
   };
   return (
     <div className="contanier d-flex justify-content-center align-items-center mb-3">

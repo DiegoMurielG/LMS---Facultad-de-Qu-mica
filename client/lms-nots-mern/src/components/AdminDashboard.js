@@ -25,9 +25,14 @@ export default function AdminDashboard() {
   const visibility_on_clases = "position-absolute top-50 start-0 translate-middle-y";
   const height_navbar_percentage = 8;
 
+  const api = axios.create({
+    baseURL: process.env.REACT_APP_API_URL, // Usa la URL de la variable de entorno
+    withCredentials: true, // Si necesitas enviar cookies
+  });
+
   useEffect(() => {
-    axios
-      .get("https://lms-facultad-de-quimica.onrender.com/api/admin-dashboard")
+    api
+      .get("/admin-dashboard")
       .then((response) => {
         console.log(response.data);
         // alert(`${response.data.message}`);

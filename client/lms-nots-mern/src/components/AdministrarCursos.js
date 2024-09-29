@@ -7,11 +7,16 @@ import { useEffect, useState } from "react";
 export default function AdministrarCursos() {
   const [role_usuario, setRole_usuario] = useState("alumno");
   const navigate = useNavigate();
-  axios.defaults.withCredentials = true;
+
+  const api = axios.create({
+    baseURL: process.env.REACT_APP_API_URL, // Usa la URL de la variable de entorno
+    withCredentials: true, // Si necesitas enviar cookies
+  });
+  // axios.defaults.withCredentials = true;
   // Mostrar tu usario al cargar la página
   useEffect(() => {
-    axios
-      .post("https://lms-facultad-de-quimica.onrender.com/api/obtener-role-usuario")
+    api
+      .post("/obtener-role-usuario")
       .then((response) => {
         console.log(response.data);
         if (response.data.Status === 220) {

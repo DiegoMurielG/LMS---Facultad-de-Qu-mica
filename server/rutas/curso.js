@@ -341,11 +341,12 @@ router.post("/actualizar-curso", async (request, response) => {
 });
 
 router.post("/registrar-contenido", (request, response, next) => {
-  const { texto, tipo, imagenes } = request.body;
+  const { texto, tipo, imagenes, links } = request.body;
   ContentModel.create({
     contentType: tipo,
     text: texto,
     pictures: imagenes,
+    links: links,
   })
     .then((content) => {
       response.json({
@@ -360,11 +361,12 @@ router.post("/registrar-contenido", (request, response, next) => {
 });
 
 router.post("/editar-contenido", (request, response, next) => {
-  const { texto, tipo, imagenes, id_contenido } = request.body;
+  const { texto, tipo, imagenes, id_contenido, links } = request.body;
   ContentModel.findByIdAndUpdate(id_contenido, {
     contentType: tipo,
     text: texto,
     pictures: imagenes,
+    links: links,
   })
     .then((docs) => {
       response.json({

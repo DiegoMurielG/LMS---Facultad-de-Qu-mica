@@ -8,11 +8,15 @@ export default function Login() {
   const [warning, setWarning] = useState(null);
   const navigate = useNavigate();
 
-  axios.defaults.withCredentials = true;
+  const api = axios.create({
+    baseURL: process.env.REACT_APP_API_URL, // Usa la URL de la variable de entorno
+    withCredentials: true, // Si necesitas enviar cookies
+  });
+  // axios.defaults.withCredentials = true;
   const handleSubmit = (e) => {
     e.preventDefault();
-    axios
-      .post("https://lms-facultad-de-quimica.onrender.com/api/iniciar-sesion", { email, password })
+    api
+      .post("/iniciar-sesion", { email, password })
       .then((response) => {
         setWarning(response.data.message);
         // console.log(response.data);
@@ -32,6 +36,27 @@ export default function Login() {
       .catch((error) => {
         console.log(error);
       });
+    // axios
+    //   .post("https://lms-facultad-de-quimica.onrender.com/api/iniciar-sesion", { email, password })
+    //   .then((response) => {
+    //     setWarning(response.data.message);
+    //     // console.log(response.data);
+
+    //     if (response.data.Status === 200) {
+    //       if (response.data.role === "admin") {
+    //         // Si eres admin, navegamos a la ruta de localhost:3000/dashboard
+    //         // Ya tenemos que tener creada la ruta en la App
+    //         navigate("/admin-dashboard");
+    //       } else if (response.data.role === "maestro") {
+    //         navigate("/dashboard");
+    //       } else {
+    //         navigate("/home");
+    //       }
+    //     }
+    //   })
+    //   .catch((error) => {
+    //     console.log(error);
+    //   });
   };
 
   return (

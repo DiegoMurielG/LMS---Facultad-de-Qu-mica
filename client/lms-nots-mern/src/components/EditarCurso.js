@@ -35,7 +35,11 @@ export default function EditarCurso() {
 
   const navigate = useNavigate();
 
-  axios.defaults.withCredentials = true;
+  const api = axios.create({
+    baseURL: process.env.REACT_APP_API_URL, // Usa la URL de la variable de entorno
+    withCredentials: true, // Si necesitas enviar cookies
+  });
+  // axios.defaults.withCredentials = true;
 
   // function asignarListaCursos() {
   //   setLista_cursos(<></>);
@@ -111,12 +115,9 @@ export default function EditarCurso() {
         datos_cursos.enrolled_users != "No hay alumnos inscritos en el curso."
       ) {
         const alumnosPromises = datos_cursos.enrolled_users.map(async (id_alumno_individual) => {
-          const response = await axios.post(
-            "https://lms-facultad-de-quimica.onrender.com/api/buscar-usuarios-por-id",
-            {
-              id_de_usuario_a_buscar: id_alumno_individual.toString(),
-            }
-          );
+          const response = await api.post("/buscar-usuarios-por-id", {
+            id_de_usuario_a_buscar: id_alumno_individual.toString(),
+          });
           return response.data.docs;
         });
         const alumnosData = await Promise.all(alumnosPromises);
@@ -136,12 +137,9 @@ export default function EditarCurso() {
         datos_cursos.teachers != undefined
       ) {
         const maestrosPromises = datos_cursos.teachers.map(async (id_maestro_individual) => {
-          const response = await axios.post(
-            "https://lms-facultad-de-quimica.onrender.com/api/buscar-usuarios-por-id",
-            {
-              id_de_usuario_a_buscar: id_maestro_individual.toString(),
-            }
-          );
+          const response = await api.post("/buscar-usuarios-por-id", {
+            id_de_usuario_a_buscar: id_maestro_individual.toString(),
+          });
           return response.data.docs;
         });
         const maestrosData = await Promise.all(maestrosPromises);
@@ -153,8 +151,8 @@ export default function EditarCurso() {
   }, [datos_cursos.teachers]);
 
   const getDataCurso = async (id_curso) => {
-    await axios
-      .post("https://lms-facultad-de-quimica.onrender.com/api/buscar-cursos", {
+    await api
+      .post("/buscar-cursos", {
         palabra_a_buscar: `#: ${id_curso}`,
         filtro: "todos",
       })
@@ -168,8 +166,8 @@ export default function EditarCurso() {
           const ids_alumnosDelCurso = Array.from(curso.enrolled_users);
 
           const teacherNamesPromise = ids_maestrosDelCurso.length
-            ? axios
-                .post("https://lms-facultad-de-quimica.onrender.com/api/buscar-nombres-con-ids", {
+            ? api
+                .post("/buscar-nombres-con-ids", {
                   ids: ids_maestrosDelCurso.join(","),
                 })
                 .then((response) => {
@@ -182,8 +180,8 @@ export default function EditarCurso() {
             : Promise.resolve((curso.teachers = "No hay maestros impartiendo el curso."));
 
           const studentNamesPromise = ids_alumnosDelCurso.length
-            ? axios
-                .post("https://lms-facultad-de-quimica.onrender.com/api/buscar-nombres-con-ids", {
+            ? api
+                .post("/buscar-nombres-con-ids", {
                   ids: ids_alumnosDelCurso.join(","),
                 })
                 .then((response) => {
@@ -213,8 +211,8 @@ export default function EditarCurso() {
   };
 
   const getRoleUsuario = () => {
-    axios
-      .post("https://lms-facultad-de-quimica.onrender.com/api/obtener-role-usuario")
+    api
+      .post("/obtener-role-usuario")
       .then((response) => {
         console.log(response.data);
         if (response.data.Status === 220) {
@@ -274,8 +272,8 @@ export default function EditarCurso() {
   };
 
   const borrarCurso = (id_curso) => {
-    axios
-      .post("https://lms-facultad-de-quimica.onrender.com/api/borrar-curso", {
+    api
+      .post("/borrar-curso", {
         id_curso: id_curso,
         role: role_usuario,
       })
@@ -318,8 +316,8 @@ export default function EditarCurso() {
   const handleActualizarCurso = (e) => {
     e.preventDefault();
 
-    axios
-      .post("https://lms-facultad-de-quimica.onrender.com/api/actualizar-curso", {
+    api
+      .post("/actualizar-curso", {
         id_curso: idCurso,
         nombre: nombreCurso,
         temas: temasCurso,
@@ -356,14 +354,11 @@ export default function EditarCurso() {
         id_curso: idCurso,
         id_usuario_a_borrar: id_usuario_to_erase.toString(),
       });
-      const response = await axios.post(
-        "https://lms-facultad-de-quimica.onrender.com/api/eliminar-usuario-de-curso",
-        {
-          id_curso: idCurso,
-          id_usuario_a_borrar: id_usuario_to_erase.toString(),
-          rol_usuario_to_erase: rol_usuario_to_erase,
-        }
-      );
+      const response = await api.post("/eliminar-usuario-de-curso", {
+        id_curso: idCurso,
+        id_usuario_a_borrar: id_usuario_to_erase.toString(),
+        rol_usuario_to_erase: rol_usuario_to_erase,
+      });
 
       // Verifica que la respuesta contenga 'Status' y 'message'
       if (response.data && response.data.Status === 707) {
@@ -380,7 +375,7 @@ export default function EditarCurso() {
 
   // const handleRemoveThisUsuario = async (id_usuario_to_errase) => {
   //   try {
-  //     await axios.post("https://lms-facultad-de-quimica.onrender.com/api/eliminar-usuario-de-curso", {
+  //     await api.post("/eliminar-usuario-de-curso", {
   //       id_curso: idCurso,
   //       id_usuario_a_borrar: id_usuario_to_errase.toString(),
   //     });
@@ -397,8 +392,8 @@ export default function EditarCurso() {
     for (let i = 0; i < alumnosCurso.length; i++) {
       // Buscarlo
       let nombreAlumno = alumnosCurso.at(i);
-      axios
-        .post("https://lms-facultad-de-quimica.onrender.com/api/admin/buscar-usuarios", {
+      api
+        .post("/admin/buscar-usuarios", {
           palabra_a_buscar: nombreAlumno,
           filtro: "alumnos",
         })
@@ -427,8 +422,8 @@ export default function EditarCurso() {
   // Búsqueda de alumnos en tiempo real por input del usuario
   useEffect(() => {
     // Buscar el usuario escrito en la DB
-    axios
-      .post("https://lms-facultad-de-quimica.onrender.com/api/admin/buscar-usuarios", {
+    api
+      .post("/admin/buscar-usuarios", {
         palabra_a_buscar: alumnosBuscados,
         filtro: "alumnos",
       })
@@ -463,8 +458,8 @@ export default function EditarCurso() {
     for (let i = 0; i < maestrosCurso.length; i++) {
       // Buscarlo
       let nombreMaestro = maestrosCurso.at(i);
-      axios
-        .post("https://lms-facultad-de-quimica.onrender.com/api/admin/buscar-usuarios", {
+      api
+        .post("/admin/buscar-usuarios", {
           palabra_a_buscar: nombreMaestro,
           filtro: "maestros",
         })
@@ -493,8 +488,8 @@ export default function EditarCurso() {
   // Búsqueda de maestros en tiempo real por input del usuario
   useEffect(() => {
     // Buscar el usuario escrito en la DB
-    axios
-      .post("https://lms-facultad-de-quimica.onrender.com/api/admin/buscar-usuarios", {
+    api
+      .post("/admin/buscar-usuarios", {
         palabra_a_buscar: maestrosBuscados,
         filtro: "maestros",
       })
@@ -600,8 +595,8 @@ export default function EditarCurso() {
                   alumnos.map((alumno, index) => {
                     // datos_cursos.enrolled_users?.length > 0 ? (
                     // datos_cursos.enrolled_users.map(async (id_alumno_individual, index) => {
-                    //   const obj_alumno_individual = await axios.post(
-                    //     "https://lms-facultad-de-quimica.onrender.com/api/buscar-usuarios-por-id",
+                    //   const obj_alumno_individual = await api.post(
+                    //     "/buscar-usuarios-por-id",
                     //     {
                     //       palabra_a_buscar: id_alumno_individual.toString(),
                     //       filtro: "maestros",
@@ -690,8 +685,8 @@ export default function EditarCurso() {
                   maestros.map((maestro, index) => {
                     // datos_cursos.enrolled_users?.length > 0 ? (
                     // datos_cursos.enrolled_users.map(async (id_maestro_individual, index) => {
-                    //   const obj_maestro_individual = await axios.post(
-                    //     "https://lms-facultad-de-quimica.onrender.com/api/buscar-usuarios-por-id",
+                    //   const obj_maestro_individual = await api.post(
+                    //     "/buscar-usuarios-por-id",
                     //     {
                     //       palabra_a_buscar: id_maestro_individual.toString(),
                     //       filtro: "maestros",

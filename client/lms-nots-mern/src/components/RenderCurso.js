@@ -32,17 +32,19 @@ export default function RenderCurso() {
 
   const navigate = useNavigate();
 
+  const api = axios.create({
+    baseURL: process.env.REACT_APP_API_URL, // Usa la URL de la variable de entorno
+    withCredentials: true, // Si necesitas enviar cookies
+  });
+
   // const [cantidadPreguntasRespondidas, setCantidadPreguntasRespondidas] = useState(0);
   // const [cantidadPreguntasCurso, setCantidadPreguntasCurso] = useState(0);
 
   const cargarDatosCurso = async (id_curso) => {
     try {
-      const response = await axios.post(
-        "https://lms-facultad-de-quimica.onrender.com/api/buscar-cursos",
-        {
-          palabra_a_buscar: `#: ${id_curso}`,
-        }
-      );
+      const response = await api.post("/buscar-cursos", {
+        palabra_a_buscar: `#: ${id_curso}`,
+      });
       if (response.data.Status === 301 && response.data.docs[0]) {
         const nuevo_curso = response.data.docs[0];
         setObj_curso((obj_anterior_curso) => {
@@ -74,7 +76,7 @@ export default function RenderCurso() {
   //   let objs_secciones_validas = []
   //   try {
   //     const promesaSeccionesEncontradas = obj_curso.sections.map(async(id_seccion_individual) => {
-  //       const response = await axios.post("https://lms-facultad-de-quimica.onrender.com/api/buscar-secciones", {
+  //       const response = await api.post("/buscar-secciones", {
   //         palabra_a_buscar: `#: ${id_seccion_individual}`
   //       })
   //       if (response.data.Status === 407 && response.data.docs[0]) {
@@ -95,7 +97,7 @@ export default function RenderCurso() {
   //   try {
   //     const promesaActividadesEncontradas = objs_secciones_validas.map(async (obj_seccion_individual) => {
   //       return [...obj_seccion_individual.id_tasks.map(async (id_actividad_individual) => {
-  //         const response = await axios.post("https://lms-facultad-de-quimica.onrender.com/api/buscar-actividades", {
+  //         const response = await api.post("/buscar-actividades", {
   //           palabra_a_buscar: `#: ${id_actividad_individual}`
   //         })
   //         if (response.data.Status === 507 && response.data.docs[0]) {
@@ -117,7 +119,7 @@ export default function RenderCurso() {
   //   try {
   //     const promesaPreguntasEncontradas = objs_actividades_validas.map(async (obj_actividad_individual) => {
   //       return [...obj_actividad_individual.questions.map(async (id_pregunta_individual) => {
-  //         const response = await axios.post("https://lms-facultad-de-quimica.onrender.com/api/buscar-preguntas", {
+  //         const response = await api.post("/buscar-preguntas", {
   //           palabra_a_buscar: `#: ${id_pregunta_individual}`
   //         })
   //         if (response.data.Status === 607 && response.data.docs[0]) {
@@ -173,12 +175,9 @@ export default function RenderCurso() {
         // 1. Buscar las secciones
         const promesaSeccionesEncontradas = obj_curso.sections.map(
           async (id_seccion_individual) => {
-            const response = await axios.post(
-              "https://lms-facultad-de-quimica.onrender.com/api/buscar-secciones",
-              {
-                palabra_a_buscar: `#: ${id_seccion_individual}`,
-              }
-            );
+            const response = await api.post("/buscar-secciones", {
+              palabra_a_buscar: `#: ${id_seccion_individual}`,
+            });
             if (response.data.Status === 407 && response.data.docs[0]) {
               return response.data.docs[0];
             } else {
@@ -198,12 +197,9 @@ export default function RenderCurso() {
           async (obj_seccion_individual) => {
             const actividadesPromises = obj_seccion_individual.id_tasks.map(
               async (id_actividad_individual) => {
-                const response = await axios.post(
-                  "https://lms-facultad-de-quimica.onrender.com/api/buscar-actividades",
-                  {
-                    palabra_a_buscar: `#: ${id_actividad_individual}`,
-                  }
-                );
+                const response = await api.post("/buscar-actividades", {
+                  palabra_a_buscar: `#: ${id_actividad_individual}`,
+                });
                 if (response.data.Status === 507 && response.data.docs[0]) {
                   return response.data.docs[0];
                 } else {
@@ -234,12 +230,9 @@ export default function RenderCurso() {
               async (obj_actividad_individual) => {
                 const preguntasPromises = obj_actividad_individual.questions.map(
                   async (id_pregunta_individual) => {
-                    const response = await axios.post(
-                      "https://lms-facultad-de-quimica.onrender.com/api/buscar-preguntas",
-                      {
-                        palabra_a_buscar: `#: ${id_pregunta_individual}`,
-                      }
-                    );
+                    const response = await api.post("/buscar-preguntas", {
+                      palabra_a_buscar: `#: ${id_pregunta_individual}`,
+                    });
                     if (response.data.Status === 607 && response.data.docs[0]) {
                       return response.data.docs[0];
                     } else {
@@ -591,9 +584,7 @@ export default function RenderCurso() {
 
     // Obtenemos el ID del usuario actual
     try {
-      const response = await axios.post(
-        "https://lms-facultad-de-quimica.onrender.com/api/obtener-id-usuario"
-      );
+      const response = await api.post("/obtener-id-usuario");
       if (response.data.id) {
         id_usuario_actual = response.data.id.toString();
       }
@@ -603,13 +594,10 @@ export default function RenderCurso() {
 
     // Guardamos las respuestas del usuario
     try {
-      const response = await axios.post(
-        "https://lms-facultad-de-quimica.onrender.com/api/guardar-respuestas-usuario-de-un-curso",
-        {
-          id_usuario: id_usuario_actual,
-          obj_answers: obj_respuestas,
-        }
-      );
+      const response = await api.post("/guardar-respuestas-usuario-de-un-curso", {
+        id_usuario: id_usuario_actual,
+        obj_answers: obj_respuestas,
+      });
 
       if (response.data.Status === 207) {
         navigate("/home", { state: { response_data: response.data } });

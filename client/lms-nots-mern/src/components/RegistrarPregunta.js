@@ -100,7 +100,11 @@ export default function RegistrarPregunta({ handleSubmitExterno = null }) {
   //   }
   // }, [tipoPregunta]);
 
-  axios.defaults.withCredentials = true;
+  const api = axios.create({
+    baseURL: process.env.REACT_APP_API_URL, // Usa la URL de la variable de entorno
+    withCredentials: true, // Si necesitas enviar cookies
+  });
+  // axios.defaults.withCredentials = true;
 
   // useEffect para actualizar correctAnswers cuando listaRespuestas cambie
   useEffect(() => {
@@ -385,8 +389,8 @@ export default function RegistrarPregunta({ handleSubmitExterno = null }) {
 
     construirPregunta();
     let respuestaRegistrarPregunta = "";
-    axios
-      .post("https://lms-facultad-de-quimica.onrender.com/api/registrar-pregunta", {
+    api
+      .post("/registrar-pregunta", {
         typeOfQuestion: pregunta.typeOfQuestion,
         position: pregunta.position,
         completed: pregunta.completed,
@@ -408,15 +412,12 @@ export default function RegistrarPregunta({ handleSubmitExterno = null }) {
           // respuestaRegistrarPregunta = response.data.message;
           // Registrar pregunta en las actividades selecciondas si la asignamos a algunas actividades existentes mediante el InputBuscador de actividades
           pregunta.idTask.forEach((id_actividad) => {
-            axios
-              .post(
-                "https://lms-facultad-de-quimica.onrender.com/api/aniadir-pregunta-a-actividad",
-                {
-                  id_actividad: id_actividad,
-                  id_pregunta: pregunta._id,
-                  pregunta_totalScore: pregunta.totalScore,
-                }
-              )
+            api
+              .post("/aniadir-pregunta-a-actividad", {
+                id_actividad: id_actividad,
+                id_pregunta: pregunta._id,
+                pregunta_totalScore: pregunta.totalScore,
+              })
               .catch((error) => {
                 console.error(`Error actualizando la actividad ${id_actividad}.\n${error}`);
               });
@@ -511,7 +512,7 @@ export default function RegistrarPregunta({ handleSubmitExterno = null }) {
 
   // useEffect(() => {
   //   // Buscamos las actividades que coincidan con actividadesBuscadas
-  //   // axios.post("", {});
+  //   // api.post("", {});
   //   // Colocamos esas actividades en actividadesDisponibles
   //   // Al hacerles click las colocamos en actividadesSeleccionadas
   // }, []);
@@ -519,8 +520,8 @@ export default function RegistrarPregunta({ handleSubmitExterno = null }) {
   // Búsqueda de actividades en tiempo real por input del usuario
   useEffect(() => {
     // Buscar la actividad escrito en la DB
-    axios
-      .post("https://lms-facultad-de-quimica.onrender.com/api/buscar-actividades", {
+    api
+      .post("/buscar-actividades", {
         palabra_a_buscar: actividadesBuscadas,
       })
       .then((response) => {

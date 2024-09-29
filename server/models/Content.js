@@ -25,6 +25,19 @@ const ContentSchema = mongoose.Schema({
       },
     },
   ],
+  links: [
+    {
+      href: {
+        type: String,
+        required: true,
+      },
+      text: {
+        // Texto que está dentro del link -> <a href=".*" >Soy text</a>
+        type: String,
+        required: true,
+      },
+    },
+  ],
 });
 
 const ContentModel = mongoose.model("contenidos", ContentSchema);

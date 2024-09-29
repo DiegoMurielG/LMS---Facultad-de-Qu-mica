@@ -46,6 +46,11 @@ export default function PreguntaIndividual({
   const [actividadesDisponibles, setActividadesDisponibles] = useState([]);
   const [actividadesSeleccionadas, setActividadesSeleccionadas] = useState([]);
 
+  const api = axios.create({
+    baseURL: process.env.REACT_APP_API_URL, // Usa la URL de la variable de entorno
+    withCredentials: true, // Si necesitas enviar cookies
+  });
+
   const handleBuscarActividades = (e) => {
     e.preventDefault();
     setActividadesBuscadas(e.target.value);
@@ -125,40 +130,28 @@ export default function PreguntaIndividual({
     }
 
     try {
-      await axios.post(
-        "https://lms-facultad-de-quimica.onrender.com/api/actualizar-nombre-pregunta",
-        {
-          id_pregunta: pregunta._id,
-          nombre_pregunta: nombrePregunta,
-        }
-      );
+      await api.post("/actualizar-nombre-pregunta", {
+        id_pregunta: pregunta._id,
+        nombre_pregunta: nombrePregunta,
+      });
 
-      await axios.post(
-        "https://lms-facultad-de-quimica.onrender.com/api/actualizar-posicion-preguntas-curso",
-        {
-          id_pregunta: pregunta._id,
-          idTask: pregunta.idTask,
-          posicion: -1,
-        }
-      );
+      await api.post("/actualizar-posicion-preguntas-curso", {
+        id_pregunta: pregunta._id,
+        idTask: pregunta.idTask,
+        posicion: -1,
+      });
 
-      await axios.post(
-        "https://lms-facultad-de-quimica.onrender.com/api/aniadir-actividades-pregunta",
-        {
-          id_pregunta: pregunta._id,
-          actividades_a_aniadir: actividadesSeleccionadas.map(
-            (objeto_actividad) => objeto_actividad._id
-          ),
-        }
-      );
+      await api.post("/aniadir-actividades-pregunta", {
+        id_pregunta: pregunta._id,
+        actividades_a_aniadir: actividadesSeleccionadas.map(
+          (objeto_actividad) => objeto_actividad._id
+        ),
+      });
 
-      await axios.post(
-        "https://lms-facultad-de-quimica.onrender.com/api/actualizar-puntuacion-pregunta",
-        {
-          id_pregunta: pregunta._id,
-          puntuacion_total: puntuacionPregunta,
-        }
-      );
+      await api.post("/actualizar-puntuacion-pregunta", {
+        id_pregunta: pregunta._id,
+        puntuacion_total: puntuacionPregunta,
+      });
     } catch (error) {
       console.error("Error actualizando la pregunta:", error);
     }
@@ -188,21 +181,18 @@ export default function PreguntaIndividual({
     alert("Borrando pregunta...");
     // Movemos la pregunta al final para que las preguntas que no se borrarán cambien de posición
     try {
-      await axios.post(
-        "https://lms-facultad-de-quimica.onrender.com/api/actualizar-posicion-preguntas-curso",
-        {
-          id_pregunta: pregunta._id,
-          idTask: pregunta.idTask,
-          posicion: -1,
-        }
-      );
+      await api.post("/actualizar-posicion-preguntas-curso", {
+        id_pregunta: pregunta._id,
+        idTask: pregunta.idTask,
+        posicion: -1,
+      });
     } catch (error) {
       console.error("Error actualizando la posición de la pregunta.", error);
     }
 
     try {
-      await axios
-        .post("https://lms-facultad-de-quimica.onrender.com/api/borrar-pregunta", {
+      await api
+        .post("/borrar-pregunta", {
           id_pregunta: pregunta._id,
           idTask: pregunta.idTask,
         })
@@ -224,7 +214,7 @@ export default function PreguntaIndividual({
   // Función para buscar actividades
   // const buscarActividades = async (id_task) => {
   //   try {
-  //     const response = await axios.post("https://lms-facultad-de-quimica.onrender.com/api/buscar-actividades", {
+  //     const response = await api.post("/buscar-actividades", {
   //       palabra_a_buscar: `#: ${id_task}`,
   //     });
 
@@ -238,13 +228,10 @@ export default function PreguntaIndividual({
   // Función para borrar la actividad específica
   const handleRemoveThisTask = async (id_task_to_errase) => {
     try {
-      await axios.post(
-        "https://lms-facultad-de-quimica.onrender.com/api/eliminar-actividad-de-pregunta",
-        {
-          id_pregunta: pregunta._id,
-          id_actividad: id_task_to_errase,
-        }
-      );
+      await api.post("/eliminar-actividad-de-pregunta", {
+        id_pregunta: pregunta._id,
+        id_actividad: id_task_to_errase,
+      });
     } catch (error) {
       console.error(`Error buscando y eliminando la actividad '${id_task_to_errase}': ${error}`);
       return "Error al buscar y eliminar la actividad."; // En caso de error, devuelve un mensaje
@@ -299,8 +286,8 @@ export default function PreguntaIndividual({
   // Búsqueda de actividades en tiempo real por input del usuario
   useEffect(() => {
     // Buscar la actividad escrito en la DB
-    axios
-      .post("https://lms-facultad-de-quimica.onrender.com/api/buscar-actividades", {
+    api
+      .post("/buscar-actividades", {
         palabra_a_buscar: actividadesBuscadas,
       })
       .then((response) => {

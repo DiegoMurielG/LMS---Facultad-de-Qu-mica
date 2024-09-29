@@ -5,6 +5,11 @@ import Swal from "sweetalert2";
 export default function CursoIndividual({ datos_curso, role_usuario }) {
   const navigate = useNavigate();
 
+  const api = axios.create({
+    baseURL: process.env.REACT_APP_API_URL, // Usa la URL de la variable de entorno
+    withCredentials: true, // Si necesitas enviar cookies
+  });
+
   const confirmarBorrarCurso = (id_curso, nombre_curso) => {
     Swal.fire({
       title: `Seguro que desea borrar el curso\n ${nombre_curso}?`,
@@ -19,8 +24,8 @@ export default function CursoIndividual({ datos_curso, role_usuario }) {
   };
 
   const borrarCurso = (id_curso) => {
-    axios
-      .post("https://lms-facultad-de-quimica.onrender.com/api/borrar-curso", {
+    api
+      .post("/borrar-curso", {
         id_curso: id_curso,
         role: role_usuario,
       })

@@ -13,7 +13,12 @@ export default function Dashboard() {
   const [loginSuccessful, setLoginSuccessful] = useState();
   const navigate = useNavigate();
   const location = useLocation();
-  axios.defaults.withCredentials = true;
+
+  const api = axios.create({
+    baseURL: process.env.REACT_APP_API_URL, // Usa la URL de la variable de entorno
+    withCredentials: true, // Si necesitas enviar cookies
+  });
+  // axios.defaults.withCredentials = true;
   const [navbar_visibility_clases, setNavbar_visibility_clases] = useState(
     "nav nav-underline flex-column w-25 d-lg-block fs-3 d-none"
   );
@@ -21,8 +26,8 @@ export default function Dashboard() {
   const height_navbar_percentage = 8;
 
   useEffect(() => {
-    axios
-      .get("https://lms-facultad-de-quimica.onrender.com/api/dashboard")
+    api
+      .get("/dashboard")
       .then((response) => {
         // State is used to tell if we succeeded (200) or not (other)
         if (response.data.Status === 200) {

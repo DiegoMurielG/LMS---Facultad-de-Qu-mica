@@ -13,9 +13,14 @@ export default function RegistrarUnUsuario() {
   const [roleSesionUsuario, setRoleSesionUsuario] = useState("alumno");
   const navigate = useNavigate();
 
+  const api = axios.create({
+    baseURL: process.env.REACT_APP_API_URL, // Usa la URL de la variable de entorno
+    withCredentials: true, // Si necesitas enviar cookies
+  });
+
   useEffect(() => {
-    axios
-      .post("https://lms-facultad-de-quimica.onrender.com/api/obtener-role-usuario")
+    api
+      .post("/obtener-role-usuario")
       .then((response) => {
         if (response.data.Status === 220) {
           setRoleSesionUsuario("admin");

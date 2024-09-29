@@ -5,17 +5,22 @@ import UsuarioIndividual from "./UsuarioIndividual";
 export default function AdministrarUsuarioPropio() {
   const [datos_usuarios, setDatos_usuarios] = useState([]);
   const [role_usuario, setRole_usuario] = useState("alumno");
-  axios.defaults.withCredentials = true;
+
+  const api = axios.create({
+    baseURL: process.env.REACT_APP_API_URL, // Usa la URL de la variable de entorno
+    withCredentials: true, // Si necesitas enviar cookies
+  });
+  // axios.defaults.withCredentials = true;
   // Mostrar tu usario al cargar la página
   useEffect(() => {
-    axios
-      .post("https://lms-facultad-de-quimica.onrender.com/api/obtener-role-usuario")
+    api
+      .post("/obtener-role-usuario")
       .then((response) => {
         console.log(response.data);
         if (response.data.Status === 220) {
           setRole_usuario("admin");
-          axios
-            .post("https://lms-facultad-de-quimica.onrender.com/api/admin/buscar-usuario-actual")
+          api
+            .post("i/admin/buscar-usuario-actual")
             .then((response) => {
               // setDatos_usuarios([]);
               // setDatos_usuarios(response.data);
@@ -30,8 +35,8 @@ export default function AdministrarUsuarioPropio() {
             });
         } else if (response.data.Status === 221) {
           setRole_usuario("maestro");
-          axios
-            .post("https://lms-facultad-de-quimica.onrender.com/api/buscar-usuario-actual")
+          api
+            .post("/buscar-usuario-actual")
             .then((response) => {
               // setDatos_usuarios([]);
               // setDatos_usuarios(response.data);

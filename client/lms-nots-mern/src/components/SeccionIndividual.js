@@ -22,6 +22,11 @@ export default function SeccionIndividual({
   );
   const [lista_data_tasks, setLista_data_tasks] = useState([]);
 
+  const api = axios.create({
+    baseURL: process.env.REACT_APP_API_URL, // Usa la URL de la variable de entorno
+    withCredentials: true, // Si necesitas enviar cookies
+  });
+
   // Construir sección actual
   let seccionConstruida = {
     idCourse: id_curso, // La FK que viene desde el curso
@@ -92,39 +97,27 @@ export default function SeccionIndividual({
     }
 
     try {
-      await axios.post(
-        "https://lms-facultad-de-quimica.onrender.com/api/actualizar-nombre-seccion",
-        {
-          id_seccion: seccion._id,
-          nombre_seccion: nombreSeccion,
-        }
-      );
+      await api.post("/actualizar-nombre-seccion", {
+        id_seccion: seccion._id,
+        nombre_seccion: nombreSeccion,
+      });
 
-      await axios.post(
-        "https://lms-facultad-de-quimica.onrender.com/api/actualizar-posicion-secciones-curso",
-        {
-          id_curso: id_curso,
-          id_seccion: seccion._id,
-          posicion: posicionSeccion,
-        }
-      );
+      await api.post("/actualizar-posicion-secciones-curso", {
+        id_curso: id_curso,
+        id_seccion: seccion._id,
+        posicion: posicionSeccion,
+      });
 
-      await axios.post(
-        "https://lms-facultad-de-quimica.onrender.com/api/aniadir-actividades-seccion",
-        {
-          id_seccion: seccion._id,
-          actividades_a_aniadir: actividadesSeleccionadas.map(
-            (objeto_actividad) => objeto_actividad._id
-          ),
-        }
-      );
+      await api.post("/aniadir-actividades-seccion", {
+        id_seccion: seccion._id,
+        actividades_a_aniadir: actividadesSeleccionadas.map(
+          (objeto_actividad) => objeto_actividad._id
+        ),
+      });
 
-      await axios.post(
-        "https://lms-facultad-de-quimica.onrender.com/api/actualizar-puntuacion-seccion",
-        {
-          id_seccion: seccion._id,
-        }
-      );
+      await api.post("/actualizar-puntuacion-seccion", {
+        id_seccion: seccion._id,
+      });
 
       setRerenderPorActualizacionDeDatos(true);
 
@@ -156,21 +149,18 @@ export default function SeccionIndividual({
     alert("Borrando sección...");
     // Movemos la sección al final para que las secciones uqe no se borrarán cambien de posición
     try {
-      await axios.post(
-        "https://lms-facultad-de-quimica.onrender.com/api/actualizar-posicion-secciones-curso",
-        {
-          id_curso: id_curso,
-          id_seccion: id_seccion,
-          posicion: -1,
-        }
-      );
+      await api.post("/actualizar-posicion-secciones-curso", {
+        id_curso: id_curso,
+        id_seccion: id_seccion,
+        posicion: -1,
+      });
     } catch (error) {
       console.error("Error actualizando la posición de la sección.", error);
     }
 
     try {
-      await axios
-        .post("https://lms-facultad-de-quimica.onrender.com/api/borrar-seccion", {
+      await api
+        .post("/borrar-seccion", {
           id_section: id_seccion,
           id_curso: id_curso,
           id_tasks: id_tasks,
@@ -193,7 +183,7 @@ export default function SeccionIndividual({
   // Función para buscar actividades
   // const buscarActividades = async (id_task) => {
   //   try {
-  //     const response = await axios.post("https://lms-facultad-de-quimica.onrender.com/api/buscar-actividades", {
+  //     const response = await api.post("/buscar-actividades", {
   //       palabra_a_buscar: `#: ${id_task}`,
   //     });
 
@@ -207,13 +197,10 @@ export default function SeccionIndividual({
   // Función para borrar la actividad específica
   const handleRemoveThisTask = async (id_task_to_errase) => {
     try {
-      await axios.post(
-        "https://lms-facultad-de-quimica.onrender.com/api/eliminar-actividad-de-seccion",
-        {
-          id_section: seccion._id,
-          id_actividad: id_task_to_errase,
-        }
-      );
+      await api.post("/eliminar-actividad-de-seccion", {
+        id_section: seccion._id,
+        id_actividad: id_task_to_errase,
+      });
     } catch (error) {
       console.error(`Error buscando y eliminando la actividad '${id_task_to_errase}': ${error}`);
       return "Error al buscar y eliminar la actividad."; // En caso de error, devuelve un mensaje
@@ -268,8 +255,8 @@ export default function SeccionIndividual({
   // Búsqueda de actividades en tiempo real por input del usuario
   useEffect(() => {
     // Buscar la actividad escrito en la DB
-    axios
-      .post("https://lms-facultad-de-quimica.onrender.com/api/buscar-actividades", {
+    api
+      .post("/buscar-actividades", {
         palabra_a_buscar: actividadesBuscadas,
       })
       .then((response) => {
