@@ -11,7 +11,11 @@ export default function RegistrarSeccion({ id_curso }) {
   const [actividadesDisponibles, setActividadesDisponibles] = useState([]);
   const [actividadesSeleccionadas, setActividadesSeleccionadas] = useState([]);
 
-  axios.defaults.withCredentials = true;
+  const api = axios.create({
+    baseURL: process.env.REACT_APP_API_URL, // Usa la URL de la variable de entorno
+    withCredentials: true, // Si necesitas enviar cookies
+  });
+  // axios.defaults.withCredentials = true;
 
   const handleBuscarActividades = (e) => {
     e.preventDefault();
@@ -20,7 +24,7 @@ export default function RegistrarSeccion({ id_curso }) {
 
   // useEffect(() => {
   //   // Buscamos las actividades que coincidan con actividadesBuscadas
-  //   // axios.post("", {});
+  //   // api.post("", {});
   //   // Colocamos esas actividades en actividadesDisponibles
   //   // Al hacerles click las colocamos en actividadesSeleccionadas
   // }, []);
@@ -28,8 +32,8 @@ export default function RegistrarSeccion({ id_curso }) {
   // Búsqueda de actividades en tiempo real por input del usuario
   useEffect(() => {
     // Buscar la actividad escrito en la DB
-    axios
-      .post("https://lms-facultad-de-quimica.onrender.com/api/buscar-actividades", {
+    api
+      .post("/buscar-actividades", {
         palabra_a_buscar: actividadesBuscadas,
       })
       .then((response) => {
@@ -114,13 +118,10 @@ export default function RegistrarSeccion({ id_curso }) {
       let id_tasks_created_section;
 
       // Buscamos el curso para obtener el arreglo de "sections_curso" y así evitar desincornización de datos
-      const sections_curso_response = await axios.post(
-        "https://lms-facultad-de-quimica.onrender.com/api/buscar-cursos",
-        {
-          palabra_a_buscar: `#: ${id_curso}`,
-          filtro: "todos",
-        }
-      );
+      const sections_curso_response = await api.post("/buscar-cursos", {
+        palabra_a_buscar: `#: ${id_curso}`,
+        filtro: "todos",
+      });
 
       if (sections_curso_response.data.Status === 301) {
         seccion.sections_curso = sections_curso_response.data.docs[0].sections;
@@ -133,44 +134,35 @@ export default function RegistrarSeccion({ id_curso }) {
       console.log(`seccion.id_tasks: ${JSON.stringify(seccion.id_tasks)}`);
 
       // Registrar la sección en la base de datos
-      const response = await axios.post(
-        "https://lms-facultad-de-quimica.onrender.com/api/registrar-seccion",
-        {
-          idCourse: seccion.id_curso, // La FK que viene desde el curso
-          name: seccion.name, // Nombre de la sección
-          position: seccion.position, // Posición de la sección dentro del curso (número de sección para ordenarlas)
-          // -1 = al final => $push
-          // 0 = al inicio => $push[0]
-          id_tasks: seccion.id_tasks, // Arreglo de los ID’s en orden de las actividades que tiene la sección
-          totalScore: seccion.totalScore, // Suma del valor de todas las actividades que contiene esta sección
-          answeredScore: seccion.answeredScore, // Suma de todos los puntos obtenidos por el usuario al contestar todas las actividades de esta sección
-          sections_curso: seccion.sections_curso,
-        }
-      );
+      const response = await api.post("/registrar-seccion", {
+        idCourse: seccion.id_curso, // La FK que viene desde el curso
+        name: seccion.name, // Nombre de la sección
+        position: seccion.position, // Posición de la sección dentro del curso (número de sección para ordenarlas)
+        // -1 = al final => $push
+        // 0 = al inicio => $push[0]
+        id_tasks: seccion.id_tasks, // Arreglo de los ID’s en orden de las actividades que tiene la sección
+        totalScore: seccion.totalScore, // Suma del valor de todas las actividades que contiene esta sección
+        answeredScore: seccion.answeredScore, // Suma de todos los puntos obtenidos por el usuario al contestar todas las actividades de esta sección
+        sections_curso: seccion.sections_curso,
+      });
 
       if (response.data.Status === 405) {
         id_seccion = response.data.content_id; // Actualiza id_seccion con el ID recibido del servidor
         id_tasks_created_section = response.data.id_tasks; // Actualiza id_tasks_created_section con el arreglo recibido del servidor
 
         const promesaActualizarCurso = [id_seccion].map(async (id_seccion_obtenido) => {
-          return await axios.post(
-            "https://lms-facultad-de-quimica.onrender.com/api/actualizar-secciones-curso",
-            {
-              id_curso: id_curso,
-              id_seccion: id_seccion_obtenido,
-              position: seccion.position,
-            }
-          );
+          return await api.post("/actualizar-secciones-curso", {
+            id_curso: id_curso,
+            id_seccion: id_seccion_obtenido,
+            position: seccion.position,
+          });
         });
 
         // Aquí es donde se actualizan las actividades con el nuevo ID de la sección recién creada
         const promesasActividades = actividadesSeleccionadas.map(async (actividad) => {
-          const actividadResponse = await axios.post(
-            "https://lms-facultad-de-quimica.onrender.com/api/buscar-actividades",
-            {
-              palabra_a_buscar: `#: ${actividad._id}`,
-            }
-          );
+          const actividadResponse = await api.post("/buscar-actividades", {
+            palabra_a_buscar: `#: ${actividad._id}`,
+          });
 
           let arregloSeccionesActividad = actividadResponse.data.docs[0].idSection || [];
           let arregloPosicionesActividad = actividadResponse.data.docs[0].position || [];
@@ -187,14 +179,11 @@ export default function RegistrarSeccion({ id_curso }) {
           }
 
           // Actualizar la actividad con el nuevo arreglo de secciones
-          await axios.post(
-            "https://lms-facultad-de-quimica.onrender.com/api/actualizar-idSection-actividad",
-            {
-              id_actividad: actividad._id,
-              id_sections_individuales: arregloSeccionesActividad,
-              arregloPosicionesActividad: arregloPosicionesActividad,
-            }
-          );
+          await api.post("/actualizar-idSection-actividad", {
+            id_actividad: actividad._id,
+            id_sections_individuales: arregloSeccionesActividad,
+            arregloPosicionesActividad: arregloPosicionesActividad,
+          });
         });
 
         await Promise.all(promesasActividades, promesaActualizarCurso);

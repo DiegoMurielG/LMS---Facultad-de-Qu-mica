@@ -15,7 +15,11 @@ export default function RegistrarActividad() {
   const [seccionesDisponibles, setSeccionesDisponibles] = useState([]);
   const [seccionesSeleccionadas, setSeccionesSeleccionadas] = useState([]);
 
-  axios.defaults.withCredentials = true;
+  const api = axios.create({
+    baseURL: process.env.REACT_APP_API_URL, // Usa la URL de la variable de entorno
+    withCredentials: true, // Si necesitas enviar cookies
+  });
+  // axios.defaults.withCredentials = true;
 
   const handleBuscarPreguntas = (e) => {
     e.preventDefault();
@@ -25,7 +29,7 @@ export default function RegistrarActividad() {
 
   // useEffect(() => {
   //   // Buscamos las preguntas que coincidan con preguntasBuscadas
-  //   // axios.post("", {});
+  //   // api.post("", {});
   //   // Colocamos esas preguntas en preguntasDisponibles
   //   // Al hacerles click las colocamos en preguntasSeleccionadas
   // }, [preguntasBuscadas]);
@@ -33,8 +37,8 @@ export default function RegistrarActividad() {
   // Búsqueda de preguntas en tiempo real por input del usuario
   useEffect(() => {
     // Buscar la pregunta escrita en la DB
-    axios
-      .post("https://lms-facultad-de-quimica.onrender.com/api/buscar-preguntas", {
+    api
+      .post("/buscar-preguntas", {
         palabra_a_buscar: preguntasBuscadas,
       })
       .then((response) => {
@@ -85,8 +89,8 @@ export default function RegistrarActividad() {
   // Búsqueda de secciones en tiempo real por input del usuario
   useEffect(() => {
     // Buscar la sección escrito en la DB
-    axios
-      .post("https://lms-facultad-de-quimica.onrender.com/api/buscar-secciones", {
+    api
+      .post("/buscar-secciones", {
         palabra_a_buscar: seccionesBuscadas,
       })
       .then((response) => {
@@ -160,8 +164,8 @@ export default function RegistrarActividad() {
   //   // preguntasSeleccionadas
   //   let actividad = crearActividad();
   //   let id_actividad = "";
-  //   axios
-  //     .post("https://lms-facultad-de-quimica.onrender.com/api/registrar-actividad", {
+  //   api
+  //     .post("/registrar-actividad", {
   //       idSection: actividad.idSection, // Arreglo que guarda la sección a la que pertenece esta actividad (FK que viene de la sección)
   //       name: actividad.name, // Cadena que guarda el nombre de la actividad
   //       position: actividad.position, // Posición de la actividad dentro de la secci[on correspondiente] (número de actividad para ordenarlas)
@@ -199,8 +203,8 @@ export default function RegistrarActividad() {
   //   const promesasPreguntas = preguntasSeleccionadas.flatMap(async (pregunta) => {
   //     let arregloActividadesPregunta = [];
 
-  //     const set_activities_id_to_question_Promise = axios
-  //       .post("https://lms-facultad-de-quimica.onrender.com/api/buscar-pregunta", {
+  //     const set_activities_id_to_question_Promise = api
+  //       .post("/buscar-pregunta", {
   //         palabra_a_buscar: `#: ${pregunta._id}`,
   //       })
   //       .then((response) => {
@@ -215,8 +219,8 @@ export default function RegistrarActividad() {
   //         console.log(`arregloActividadesPregunta: ${arregloActividadesPregunta}`);
 
   //         // Actualizar el arreglo idTask de la pregunta
-  //         axios
-  //           .post("https://lms-facultad-de-quimica.onrender.com/api/actualizar-idTask-pregunta", {
+  //         api
+  //           .post("/actualizar-idTask-pregunta", {
   //             id_pregunta: pregunta._id,
   //             id_tasks_individuales: arregloActividadesPregunta,
   //           })
@@ -265,17 +269,14 @@ export default function RegistrarActividad() {
       let id_actividad = "";
 
       // Registrar la actividad en la base de datos
-      const response = await axios.post(
-        "https://lms-facultad-de-quimica.onrender.com/api/registrar-actividad",
-        {
-          idSection: actividad.idSection,
-          name: actividad.name,
-          position: actividad.position,
-          questions: actividad.questions,
-          totalScore: actividad.totalScore,
-          answeredScore: actividad.answeredScore,
-        }
-      );
+      const response = await api.post("/registrar-actividad", {
+        idSection: actividad.idSection,
+        name: actividad.name,
+        position: actividad.position,
+        questions: actividad.questions,
+        totalScore: actividad.totalScore,
+        answeredScore: actividad.answeredScore,
+      });
 
       if (response.data.Status === 505) {
         id_actividad = response.data.content_id; // Actualiza id_actividad con el ID recibido del servidor
@@ -289,12 +290,9 @@ export default function RegistrarActividad() {
 
         // Aquí es donde se actualizan las secciones con el nuevo ID de la actividad recién guardada
         const promesasSecciones = seccionesSeleccionadas.map(async (seccion_individual) => {
-          const seccionResponse = await axios.post(
-            "https://lms-facultad-de-quimica.onrender.com/api/buscar-secciones",
-            {
-              palabra_a_buscar: `#: ${seccion_individual._id}`,
-            }
-          );
+          const seccionResponse = await api.post("/buscar-secciones", {
+            palabra_a_buscar: `#: ${seccion_individual._id}`,
+          });
 
           let arregloActividadesSeccionIndividual = seccionResponse.data.docs[0].id_tasks || [];
 
@@ -302,18 +300,15 @@ export default function RegistrarActividad() {
             arregloActividadesSeccionIndividual.push(id_actividad);
           }
           // La actividad ya tiene el objeto de posición correspondiente porque al crear la actividad para guardarla ya lo estamos haciendo
-          await axios.post(
-            "https://lms-facultad-de-quimica.onrender.com/api/aniadir-idTask-seccion",
-            {
-              id_seccion: seccion_individual._id,
-              updated_id_tasks: arregloActividadesSeccionIndividual,
-            }
-          );
+          await api.post("/aniadir-idTask-seccion", {
+            id_seccion: seccion_individual._id,
+            updated_id_tasks: arregloActividadesSeccionIndividual,
+          });
         });
 
         await Promise.all(promesasSecciones);
 
-        // await axios.post("https://lms-facultad-de-quimica.onrender.com/api/actualizar-idSections-task", {
+        // await api.post("/actualizar-idSections-task", {
         //   id_task: id_actividad,
         //   updated_id_sections: actividad.position,
         // });
@@ -339,12 +334,9 @@ export default function RegistrarActividad() {
 
         // Aquí es donde se actualizan las preguntas con el nuevo ID de actividad
         const promesasPreguntas = preguntasSeleccionadas.map(async (pregunta) => {
-          const preguntaResponse = await axios.post(
-            "https://lms-facultad-de-quimica.onrender.com/api/buscar-preguntas",
-            {
-              palabra_a_buscar: `#: ${pregunta._id}`,
-            }
-          );
+          const preguntaResponse = await api.post("/buscar-preguntas", {
+            palabra_a_buscar: `#: ${pregunta._id}`,
+          });
 
           let arregloActividadesPregunta = preguntaResponse.data.docs[0].idTask || [];
 
@@ -354,13 +346,10 @@ export default function RegistrarActividad() {
           }
 
           // Actualizar la pregunta con el nuevo arreglo de actividades
-          await axios.post(
-            "https://lms-facultad-de-quimica.onrender.com/api/actualizar-idTask-pregunta",
-            {
-              id_pregunta: pregunta._id,
-              id_tasks_individuales: arregloActividadesPregunta,
-            }
-          );
+          await api.post("/actualizar-idTask-pregunta", {
+            id_pregunta: pregunta._id,
+            id_tasks_individuales: arregloActividadesPregunta,
+          });
         });
 
         await Promise.all(promesasPreguntas);

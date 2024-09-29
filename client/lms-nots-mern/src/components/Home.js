@@ -17,7 +17,12 @@ export default function Home() {
 
   // Acceder al estado creado por navigate() en RenderCurso al guardar correctamente las respuestas, este estado está en location.state
   const respuesta_contestar_curso = location.state?.response_data;
-  axios.defaults.withCredentials = true;
+
+  const api = axios.create({
+    baseURL: process.env.REACT_APP_API_URL, // Usa la URL de la variable de entorno
+    withCredentials: true, // Si necesitas enviar cookies
+  });
+  // axios.defaults.withCredentials = true;
   const [navbar_visibility_clases, setNavbar_visibility_clases] = useState(
     "nav nav-underline flex-column w-25 d-lg-block fs-3 d-none"
   );
@@ -25,8 +30,8 @@ export default function Home() {
   const height_navbar_percentage = 8;
 
   useEffect(() => {
-    axios
-      .get("https://lms-facultad-de-quimica.onrender.com/api/home")
+    api
+      .get("/home")
       .then((response) => {
         console.log(response.data);
         // alert(`${response.data.message}`);

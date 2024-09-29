@@ -18,6 +18,11 @@ export default function RegistrarUnUsuarioPermisoAdmin(props) {
   const [cursosSeleccionados, setCursosSeleccionados] = useState([]);
   // const [cursos, setCursos] = useState("");
 
+  const api = axios.create({
+    baseURL: process.env.REACT_APP_API_URL, // Usa la URL de la variable de entorno
+    withCredentials: true, // Si necesitas enviar cookies
+  });
+
   // let warning = null;
 
   const handleSubmitPermisoAdmin = (e) => {
@@ -27,8 +32,8 @@ export default function RegistrarUnUsuarioPermisoAdmin(props) {
     maestrosSeleccionados.forEach((maestro) => {
       tmpMaestrosSeleccionados.push(maestro._id);
     });
-    axios
-      .post("https://lms-facultad-de-quimica.onrender.com/api/registrar-usuario-permiso-admin", {
+    api
+      .post("/registrar-usuario-permiso-admin", {
         nombre: nombre,
         email: email,
         password: password,
@@ -66,8 +71,8 @@ export default function RegistrarUnUsuarioPermisoAdmin(props) {
     // console.log(e);
     setMaestrosBuscados(e.target.value);
     console.log(`maestrosBuscados: ${maestrosBuscados}`);
-    axios
-      .post("https://lms-facultad-de-quimica.onrender.com/api/admin/buscar-usuarios", {
+    api
+      .post("/admin/buscar-usuarios", {
         palabra_a_buscar: maestrosBuscados,
         filtro: "maestros",
       })
@@ -101,8 +106,8 @@ export default function RegistrarUnUsuarioPermisoAdmin(props) {
     // console.log(e);
     setCursosBuscados(e.target.value);
     console.log(`cursosBuscados: ${cursosBuscados}`);
-    axios
-      .post("https://lms-facultad-de-quimica.onrender.com/api/admin/buscar-usuarios", {
+    api
+      .post("/admin/buscar-usuarios", {
         palabra_a_buscar: cursosBuscados,
         filtro: "cursos",
       })

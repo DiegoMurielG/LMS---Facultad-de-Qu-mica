@@ -13,12 +13,16 @@ export default function BuscarUsuarios() {
   const [role_usuario, setRole_usuario] = useState("alumno");
   // let lista_usuarios
 
-  axios.defaults.withCredentials = true;
+  const api = axios.create({
+    baseURL: process.env.REACT_APP_API_URL, // Usa la URL de la variable de entorno
+    withCredentials: true, // Si necesitas enviar cookies
+  });
+  // axios.defaults.withCredentials = true;
 
   // Mostrar tu usario al cargar la página
   useEffect(() => {
-    axios
-      .post("https://lms-facultad-de-quimica.onrender.com/api/obtener-role-usuario")
+    api
+      .post("/obtener-role-usuario")
       .then((response) => {
         console.log(response.data);
         if (response.data.Status === 220) {
@@ -61,8 +65,8 @@ export default function BuscarUsuarios() {
   const handleSearchUsers = (e) => {
     e.preventDefault();
     // console.log(`Buscar a ${word_to_search} con el filtro de ${filter}`);
-    axios
-      .post("https://lms-facultad-de-quimica.onrender.com/api/admin/buscar-usuarios", {
+    api
+      .post("/admin/buscar-usuarios", {
         palabra_a_buscar: word_to_search,
         filtro: filter,
       })

@@ -13,11 +13,16 @@ export default function EditarUsuario() {
   const [descripcion_personal, setDescripcion_personal] = useState("");
   const [permiso_editar_descrip_personal, setPermiso_editar_descrip_personal] = useState(true);
   const navigate = useNavigate();
+
+  const api = axios.create({
+    baseURL: process.env.REACT_APP_API_URL, // Usa la URL de la variable de entorno
+    withCredentials: true, // Si necesitas enviar cookies
+  });
   // let permiso_editar_descrip_personal = false;
 
   const obtenerDatausuario = () => {
-    axios
-      .post("https://lms-facultad-de-quimica.onrender.com/api/obtener-data-usuario", {
+    api
+      .post("/obtener-data-usuario", {
         id_usuario: params.id_usuario,
       })
       .then((response) => {
@@ -66,8 +71,8 @@ export default function EditarUsuario() {
   // }, [email]);
 
   const editarUsuario = () => {
-    axios
-      .post("https://lms-facultad-de-quimica.onrender.com/api/actualizar-data-usuario", {
+    api
+      .post("/actualizar-data-usuario", {
         id_usuario: params.id_usuario,
         nombre: nombre,
         email: email,
@@ -97,8 +102,8 @@ export default function EditarUsuario() {
   };
 
   const borrarUsuario = (id_usuario, role_usuario) => {
-    axios
-      .post("https://lms-facultad-de-quimica.onrender.com/api/borrar-usuario", {
+    api
+      .post("/borrar-usuario", {
         id_usuario: id_usuario,
         role: role_usuario,
       })
@@ -122,8 +127,8 @@ export default function EditarUsuario() {
   };
 
   const handleReturnToDashboard = () => {
-    axios
-      .post("https://lms-facultad-de-quimica.onrender.com/api/obtener-role-usuario")
+    api
+      .post("/obtener-role-usuario")
       .then((response) => {
         if (response.data.Status === 220) {
           navigate("/admin-dashboard/administrar-usuarios");
@@ -144,8 +149,8 @@ export default function EditarUsuario() {
     return new Promise((resolve, reject) => {
       // alert(email);
       console.log(`email a comparar ${email}`);
-      axios
-        .post("https://lms-facultad-de-quimica.onrender.com/api/puede-editar-descrip-personal", {
+      api
+        .post("/puede-editar-descrip-personal", {
           email: email,
         })
         .then((response) => {

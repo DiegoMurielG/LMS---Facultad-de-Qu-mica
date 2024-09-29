@@ -16,12 +16,16 @@ export default function BuscarCursos() {
   const [role_usuario, setRole_usuario] = useState("alumno");
   // let lista_cursos
 
-  axios.defaults.withCredentials = true;
+  const api = axios.create({
+    baseURL: process.env.REACT_APP_API_URL, // Usa la URL de la variable de entorno
+    withCredentials: true, // Si necesitas enviar cookies
+  });
+  // axios.defaults.withCredentials = true;
 
   // Mostrar tu usario al cargar la página
   useEffect(() => {
-    axios
-      .post("https://lms-facultad-de-quimica.onrender.com/api/obtener-role-usuario")
+    api
+      .post("/obtener-role-usuario")
       .then((response) => {
         console.log(response.data);
         if (response.data.Status === 220) {
@@ -76,8 +80,8 @@ export default function BuscarCursos() {
   // const handleSearchCourses = (e) => {
   //   e.preventDefault();
   //   // console.log(`Buscar a ${word_to_search} con el filtro de ${filter}`);
-  //   axios
-  //     .post("https://lms-facultad-de-quimica.onrender.com/api/buscar-cursos", {
+  //   api
+  //     .post("/buscar-cursos", {
   //       palabra_a_buscar: word_to_search,
   //       filtro: filter,
   //     })
@@ -103,8 +107,8 @@ export default function BuscarCursos() {
   //           // setNombresMaestros("No hay maestros impartiendo el curso.");
   //           curso.teachers = "No hay maestros impartiendo el curso.";
   //         } else {
-  //           axios
-  //             .post("https://lms-facultad-de-quimica.onrender.com/api/buscar-nombres-con-ids", {
+  //           api
+  //             .post("/buscar-nombres-con-ids", {
   //               ids: ids_maestrosDelCurso.join(","),
   //             })
   //             .then((nombres) => {
@@ -120,8 +124,8 @@ export default function BuscarCursos() {
   //           // setNombresAlumnos("No hay alumnos inscritos en el curso.");
   //           curso.enrolled_users = "No hay alumnos inscritos en el curso.";
   //         } else {
-  //           axios
-  //             .post("https://lms-facultad-de-quimica.onrender.com/api/buscar-nombres-con-ids", {
+  //           api
+  //             .post("/buscar-nombres-con-ids", {
   //               ids: ids_alumnosDelCurso.join(","),
   //             })
   //             .then((nombres) => {
@@ -157,8 +161,8 @@ export default function BuscarCursos() {
   const handleSearchCourses = (e) => {
     e.preventDefault();
 
-    axios
-      .post("https://lms-facultad-de-quimica.onrender.com/api/buscar-cursos", {
+    api
+      .post("/buscar-cursos", {
         palabra_a_buscar: word_to_search,
         filtro: filter,
       })
@@ -169,8 +173,8 @@ export default function BuscarCursos() {
           const ids_alumnosDelCurso = Array.from(curso.enrolled_users);
 
           const teacherNamesPromise = ids_maestrosDelCurso.length
-            ? axios
-                .post("https://lms-facultad-de-quimica.onrender.com/api/buscar-nombres-con-ids", {
+            ? api
+                .post("/buscar-nombres-con-ids", {
                   ids: ids_maestrosDelCurso.join(","),
                 })
                 .then((response) => {
@@ -183,8 +187,8 @@ export default function BuscarCursos() {
             : Promise.resolve((curso.teachers = "No hay maestros impartiendo el curso."));
 
           const studentNamesPromise = ids_alumnosDelCurso.length
-            ? axios
-                .post("https://lms-facultad-de-quimica.onrender.com/api/buscar-nombres-con-ids", {
+            ? api
+                .post("/buscar-nombres-con-ids", {
                   ids: ids_alumnosDelCurso.join(","),
                 })
                 .then((response) => {

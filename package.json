@@ -3,6 +3,7 @@
     "build": "npm install && npm install --prefix client/lms-nots-mern && npm run build --prefix client/lms-nots-mern"
   },
   "dependencies": {
-    "csv-stringify": "^6.5.1"
+    "csv-stringify": "^6.5.1",
+    "dotenv": "^16.4.5"
   }
 }

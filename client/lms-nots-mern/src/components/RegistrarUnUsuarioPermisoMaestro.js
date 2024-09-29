@@ -8,12 +8,17 @@ export default function RegistrarUnUsuarioPermisoMaestro(props) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const navigate = Navigate();
+
+  const api = axios.create({
+    baseURL: process.env.REACT_APP_API_URL, // Usa la URL de la variable de entorno
+    withCredentials: true, // Si necesitas enviar cookies
+  });
   // let warning = null;
 
   const handleSubmitPermisoMaestro = (e) => {
     e.preventDefault();
-    axios
-      .post("https://lms-facultad-de-quimica.onrender.com/api/registrar-usuario", {
+    api
+      .post("/registrar-usuario", {
         nombre,
         email,
         password,

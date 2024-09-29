@@ -2,6 +2,8 @@ import { useState } from "react";
 
 export default function RecopilarDatos() {
   const [isExporting, setIsExporting] = useState(false);
+  const API_URL = process.env.REACT_APP_API_URL;
+
   const handleGuardarDatosCsv = async () => {
     if (isExporting) return; // Evitar múltiples llamadas
     setIsExporting(true);
@@ -9,15 +11,12 @@ export default function RecopilarDatos() {
     // Lógica para exportar CSV
     try {
       try {
-        const response = await fetch(
-          "https://lms-facultad-de-quimica.onrender.com/api/exportar-respuestas",
-          {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-            },
-          }
-        );
+        const response = await fetch(`${API_URL}/exportar-respuestas`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
 
         if (!response.ok) {
           throw new Error("Error al obtener el archivo CSV");

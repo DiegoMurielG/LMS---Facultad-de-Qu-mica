@@ -20,10 +20,14 @@ export default function CrearUnCurso() {
   const [roleSesionUsuario, setRoleSesionUsuario] = useState("alumno");
   const navigate = useNavigate();
 
-  axios.defaults.withCredentials = true;
+  const api = axios.create({
+    baseURL: process.env.REACT_APP_API_URL, // Usa la URL de la variable de entorno
+    withCredentials: true, // Si necesitas enviar cookies
+  });
+  // axios.defaults.withCredentials = true;
   useEffect(() => {
-    axios
-      .post("https://lms-facultad-de-quimica.onrender.com/api/obtener-role-usuario")
+    api
+      .post("/obtener-role-usuario")
       .then((response) => {
         if (response.data.Status === 220) {
           setRoleSesionUsuario("admin");
@@ -50,8 +54,8 @@ export default function CrearUnCurso() {
       tmpAlumnosSeleccionados.push(maestro._id);
     });
 
-    axios
-      .post("https://lms-facultad-de-quimica.onrender.com/api/crear-curso", {
+    api
+      .post("/crear-curso", {
         nombre: nombre,
         temas: temas,
         descripcion: descripcion,
@@ -96,8 +100,8 @@ export default function CrearUnCurso() {
   const handleBuscarMaestros = (e) => {
     setMaestrosBuscados(e.target.value);
     console.log(`maestrosBuscados: ${maestrosBuscados}`);
-    axios
-      .post("https://lms-facultad-de-quimica.onrender.com/api/admin/buscar-usuarios", {
+    api
+      .post("/admin/buscar-usuarios", {
         palabra_a_buscar: maestrosBuscados,
         filtro: "maestros",
       })
@@ -113,8 +117,8 @@ export default function CrearUnCurso() {
   const handleBuscarAlumnos = (e) => {
     setAlumnosBuscados(e.target.value);
     console.log(`alumnosBuscados: ${alumnosBuscados}`);
-    axios
-      .post("https://lms-facultad-de-quimica.onrender.com/api/admin/buscar-usuarios", {
+    api
+      .post("/admin/buscar-usuarios", {
         palabra_a_buscar: alumnosBuscados,
         filtro: "alumnos",
       })

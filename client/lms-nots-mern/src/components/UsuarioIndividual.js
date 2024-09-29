@@ -12,14 +12,18 @@ export default function UsuarioIndividual(props) {
   let listaMaestrosInscritos = ["Ningún maestro inscrito"];
   const navigate = useNavigate();
 
-  axios.defaults.withCredentials = true;
+  const api = axios.create({
+    baseURL: process.env.REACT_APP_API_URL, // Usa la URL de la variable de entorno
+    withCredentials: true, // Si necesitas enviar cookies
+  });
+  // axios.defaults.withCredentials = true;
   useEffect(() => {
     // =========================================================
     // ============== S U S P E N D I D A ======================
     // =========================================================
     // Estado: Por hacer...
-    axios
-      .post("https://lms-facultad-de-quimica.onrender.com/api/buscar-nombres-profesores", {
+    api
+      .post("/buscar-nombres-profesores", {
         ids_maestros_inscritos: usuario.maestros_inscritos,
       })
       .then((response) => {
@@ -42,8 +46,8 @@ export default function UsuarioIndividual(props) {
   //   if (usuario.maestros_inscritos.length > 0) {
   //     usuario.maestros_inscritos.forEach((maestro) => {
   //       a = async () => {
-  //         await axios
-  //           .post("https://lms-facultad-de-quimica.onrender.com/api/buscar-nombre-profesor", {
+  //         await api
+  //           .post("/buscar-nombre-profesor", {
   //             maestro_inscrito: maestro,
   //           })
   //           .then((response) => {
@@ -89,8 +93,8 @@ export default function UsuarioIndividual(props) {
   //       const tmpMaestrosInscritos = ""; //maestrosInscritos + ", " + response.data.docs;
   //       let nombresMaestrosInscritos = []
   //       usuario.maestros_inscritos.forEach((maestro) => {
-  //         axios
-  //           .post("https://lms-facultad-de-quimica.onrender.com/api/buscar-nombre-profesor", {
+  //         api
+  //           .post("/buscar-nombre-profesor", {
   //             maestro_inscrito: maestro,
   //           })
   //           .then((response) => {
@@ -147,8 +151,8 @@ export default function UsuarioIndividual(props) {
   };
 
   const borrarUsuario = (id_usuario) => {
-    axios
-      .post("https://lms-facultad-de-quimica.onrender.com/api/borrar-usuario", {
+    api
+      .post("/borrar-usuario", {
         id_usuario: id_usuario,
         role: usuario.role,
       })

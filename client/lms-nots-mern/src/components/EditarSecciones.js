@@ -74,7 +74,11 @@ export default function EditarSecciones({ curso }) {
 
   const [rerenderPorActualizacionDeDatos, setRerenderPorActualizacionDeDatos] = useState(false);
 
-  axios.defaults.withCredentials = true;
+  const api = axios.create({
+    baseURL: process.env.REACT_APP_API_URL, // Usa la URL de la variable de entorno
+    withCredentials: true, // Si necesitas enviar cookies
+  });
+  // axios.defaults.withCredentials = true;
 
   // const construirSecciones = (secciones) => {
   //   return secciones.flatMap(seccion => {
@@ -98,12 +102,9 @@ export default function EditarSecciones({ curso }) {
     // Obtener las secciones del curso
     const promesasBusquedaSeccionesCurso = curso.sections.map(async (section_id) => {
       try {
-        const response = await axios.post(
-          "https://lms-facultad-de-quimica.onrender.com/api/buscar-secciones",
-          {
-            palabra_a_buscar: `#: ${section_id}`,
-          }
-        );
+        const response = await api.post("/buscar-secciones", {
+          palabra_a_buscar: `#: ${section_id}`,
+        });
 
         if (response.data.docs[0]) {
           listaSecciones.push(response.data.docs[0]);
@@ -130,8 +131,8 @@ export default function EditarSecciones({ curso }) {
   //   let listaSecciones = [];
   //   let listaSeccionesConstruidas = [];
   //   const promesasBusquedaSeccionesCurso = curso.sections.map(async (section_id) => {
-  //     const promesaSeccionIndividual = axios
-  //       .post("https://lms-facultad-de-quimica.onrender.com/api/buscar-secciones", {
+  //     const promesaSeccionIndividual = api
+  //       .post("/buscar-secciones", {
   //         palabra_a_buscar: `#: ${section_id}`,
   //       })
   //       .then((response) => {
@@ -160,12 +161,9 @@ export default function EditarSecciones({ curso }) {
 
   const buscarActividad = async (id_task) => {
     try {
-      const response = await axios.post(
-        "https://lms-facultad-de-quimica.onrender.com/api/buscar-actividades",
-        {
-          palabra_a_buscar: `#: ${id_task}`,
-        }
-      );
+      const response = await api.post("/buscar-actividades", {
+        palabra_a_buscar: `#: ${id_task}`,
+      });
 
       setData_actividades((prevDataActividades) => [...prevDataActividades, response.data.docs[0]]);
       return response.data.docs[0].name; // Devuelve el nombre de la actividad
@@ -184,12 +182,9 @@ export default function EditarSecciones({ curso }) {
       const promesasActividadesDeSeccionIndividual = seccion_individual.id_tasks.map(
         async (task_id) => {
           try {
-            const response = await axios.post(
-              "https://lms-facultad-de-quimica.onrender.com/api/buscar-actividades",
-              {
-                palabra_a_buscar: `#: ${task_id}`,
-              }
-            );
+            const response = await api.post("/buscar-actividades", {
+              palabra_a_buscar: `#: ${task_id}`,
+            });
 
             if (response.data.docs[0]) {
               const actividad = response.data.docs[0];
@@ -238,12 +233,9 @@ export default function EditarSecciones({ curso }) {
       const promesasPreguntasDeActividadIndividual = actividad_individual.questions.map(
         async (question_id) => {
           try {
-            const response = await axios.post(
-              "https://lms-facultad-de-quimica.onrender.com/api/buscar-preguntas",
-              {
-                palabra_a_buscar: `#: ${question_id}`,
-              }
-            );
+            const response = await api.post("/buscar-preguntas", {
+              palabra_a_buscar: `#: ${question_id}`,
+            });
 
             if (response.data.docs[0]) {
               const pregunta = response.data.docs[0];
@@ -289,8 +281,8 @@ export default function EditarSecciones({ curso }) {
   //   const promesasBusquedaActividadesCurso = data_secciones.map(async (seccion_individual) => {
   //     const promesaActividadesDeSeccionIndividual = seccion_individual.id_tasks.map(
   //       async (task_id) => {
-  //         const promesaActividadIndividual = axios
-  //           .post("https://lms-facultad-de-quimica.onrender.com/api/buscar-actividades", {
+  //         const promesaActividadIndividual = api
+  //           .post("/buscar-actividades", {
   //             palabra_a_buscar: `#: ${task_id}`,
   //           })
   //           .then((response) => {
