@@ -69,7 +69,6 @@ const MONGO_URI =
     ? process.env.MONGO_URI_PRODUCTION
     : process.env.MONGO_URI_LOCAL;
 
-console.log("MONGO_URI: ", MONGO_URI);
 mongoose.connect(MONGO_URI);
 
 // Local Development
