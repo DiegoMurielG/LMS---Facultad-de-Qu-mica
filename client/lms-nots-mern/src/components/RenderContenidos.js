@@ -217,6 +217,7 @@ export default function RenderContenidos({
           } else {
             // Si estamos en producción evitamos poner "/" después de la ruta debido a que ya se pone por parte del navegador
             direccionImg = files + imgObjeto.path.replace("files/", "") || "error";
+            direccionImg.replace("http://localhost:5000", "");
           }
           arreglo_objetos_contenido.push(
             <img
