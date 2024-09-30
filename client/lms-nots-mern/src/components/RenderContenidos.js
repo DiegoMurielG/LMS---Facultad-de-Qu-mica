@@ -210,7 +210,13 @@ export default function RenderContenidos({
         let imgObjeto = listaImgAInsertar.shift();
 
         if (imgObjeto) {
-          const direccionImg = files + "/" + imgObjeto.path.replace("files/", "") || "error";
+          let direccionImg = "";
+          if (files.includes("localhost")) {
+            direccionImg = files + "/" + imgObjeto.path.replace("files/", "") || "error";
+          } else {
+            // Si estamos en producción evitamos poner "/" después de la ruta debido a que ya se pone por parte del navegador
+            direccionImg = files + imgObjeto.path.replace("files/", "") || "error";
+          }
           arreglo_objetos_contenido.push(
             <img
               style={{
