@@ -211,6 +211,7 @@ export default function RenderContenidos({
 
         if (imgObjeto) {
           let direccionImg = "";
+          console.log("files:", files);
           if (files.includes("localhost")) {
             direccionImg = files + "/" + imgObjeto.path.replace("files/", "") || "error";
           } else {
