@@ -177,7 +177,7 @@ export default function RenderContenidos({
     let tamanioNombre = 6;
     let tamanioHref = 6; // href="
     let tamanioSrc = 7; // src="
-    let tamanioEtiquetaCierreImg = 4; // "/>
+    let tamanioEtiquetaCierreImg = 3; // "/>
     let tamanioEtiquetaCierreLink = 4; // </a>
 
     // Contamos la cantidad de imágenes y links
