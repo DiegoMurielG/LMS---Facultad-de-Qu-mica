@@ -214,18 +214,19 @@ export default function RenderContenidos({
         if (imgObjeto) {
           let direccionImg = "";
           console.log("files:", files);
-          if (
-            files.includes("localhost") &&
-            !files.includes("https://lms-facultad-de-quimica.onrender.com")
-          ) {
-            console.log("Estoy en Development");
-            direccionImg = files + "/" + imgObjeto.path.replace("files/", "") || "error";
-          } else {
-            console.log("Estoy en Production");
-            // Si estamos en producción evitamos poner "/" después de la ruta debido a que ya se pone por parte del navegador
-            direccionImg = files + imgObjeto.path.replace("files/", "") || "error";
-            direccionImg.replace("http://localhost:5000", "");
-          }
+          direccionImg = files + "/" + imgObjeto.path.replace("files/", "") || "error";
+          // if (
+          //   files.includes("localhost") &&
+          //   !files.includes("https://lms-facultad-de-quimica.onrender.com")
+          //   direccionImg = files + "/" + imgObjeto.path.replace("files/", "") || "error";
+          // ) {
+          //   console.log("Estoy en Development");
+          // } else {
+          //   console.log("Estoy en Production");
+          //   // Si estamos en producción evitamos poner "/" después de la ruta debido a que ya se pone por parte del navegador
+          //   direccionImg = files + imgObjeto.path.replace("files/", "") || "error";
+          //   direccionImg.replace("http://localhost:5000", "");
+          // }
           arreglo_objetos_contenido.push(
             <img
               style={{
