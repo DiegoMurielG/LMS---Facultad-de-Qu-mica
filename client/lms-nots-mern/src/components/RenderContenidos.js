@@ -192,6 +192,8 @@ export default function RenderContenidos({
     let listaImgAInsertar = [...arreglo_objetos_imagenes];
     let listaLinksAInsertar = [...arreglo_objetos_links];
 
+    console.log(`tmpTexto: `, tmpTexto);
+
     // Procesamos todo el texto buscando etiquetas <img> y <a>
     while (tmpTexto.length > 0) {
       let indexImg = tmpTexto.search(/<img name="/);
