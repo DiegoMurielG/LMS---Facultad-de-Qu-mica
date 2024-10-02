@@ -192,7 +192,7 @@ export default function RenderContenidos({
     let listaImgAInsertar = [...arreglo_objetos_imagenes];
     let listaLinksAInsertar = [...arreglo_objetos_links];
 
-    console.log(`tmpTexto: `, tmpTexto);
+    // console.log(`tmpTexto: `, tmpTexto);
 
     // Procesamos todo el texto buscando etiquetas <img> y <a>
     while (tmpTexto.length > 0) {
@@ -213,7 +213,7 @@ export default function RenderContenidos({
 
         if (imgObjeto) {
           let direccionImg = "";
-          console.log("files:", files);
+          // console.log("files:", files);
           direccionImg = files + "/" + imgObjeto.path.replace("files/", "") || "error";
           // if (
           //   files.includes("localhost") &&
