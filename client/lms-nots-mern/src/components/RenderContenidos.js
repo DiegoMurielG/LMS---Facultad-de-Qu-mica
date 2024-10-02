@@ -177,7 +177,7 @@ export default function RenderContenidos({
     let tamanioNombre = 6;
     let tamanioHref = 6; // href="
     let tamanioSrc = 7; // src="
-    let tamanioEtiquetaCierreImg = 4; // "/>
+    let tamanioEtiquetaCierreImg = 3; // "/>
     let tamanioEtiquetaCierreLink = 4; // </a>
 
     // Contamos la cantidad de imágenes y links
@@ -191,6 +191,8 @@ export default function RenderContenidos({
     // Copiamos las listas de imágenes y links para irlas modificando
     let listaImgAInsertar = [...arreglo_objetos_imagenes];
     let listaLinksAInsertar = [...arreglo_objetos_links];
+
+    console.log(`tmpTexto: `, tmpTexto);
 
     // Procesamos todo el texto buscando etiquetas <img> y <a>
     while (tmpTexto.length > 0) {
@@ -211,12 +213,20 @@ export default function RenderContenidos({
 
         if (imgObjeto) {
           let direccionImg = "";
-          if (files.includes("localhost")) {
-            direccionImg = files + "/" + imgObjeto.path.replace("files/", "") || "error";
-          } else {
-            // Si estamos en producción evitamos poner "/" después de la ruta debido a que ya se pone por parte del navegador
-            direccionImg = files + imgObjeto.path.replace("files/", "") || "error";
-          }
+          console.log("files:", files);
+          direccionImg = files + "/" + imgObjeto.path.replace("files/", "") || "error";
+          // if (
+          //   files.includes("localhost") &&
+          //   !files.includes("https://lms-facultad-de-quimica.onrender.com")
+          //   direccionImg = files + "/" + imgObjeto.path.replace("files/", "") || "error";
+          // ) {
+          //   console.log("Estoy en Development");
+          // } else {
+          //   console.log("Estoy en Production");
+          //   // Si estamos en producción evitamos poner "/" después de la ruta debido a que ya se pone por parte del navegador
+          //   direccionImg = files + imgObjeto.path.replace("files/", "") || "error";
+          //   direccionImg.replace("http://localhost:5000", "");
+          // }
           arreglo_objetos_contenido.push(
             <img
               style={{
