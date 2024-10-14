@@ -4,6 +4,7 @@ import RespuestaAbierta from "./RespuestaAbierta";
 import { useEffect, useState } from "react";
 import RespuestaIntervaloNumerico from "./RespuestaIntervaloNumerico";
 import RespuestaCompletarNumerosTabla from "./RespuestaCompletarNumerosTabla";
+import RespuestaOpcionMultiple from "./RespuestaOpcionMultiple";
 
 /**
  * Componente que renderiza una pregunta con solo los datos de la misma
@@ -22,6 +23,10 @@ export default function RenderPreguntaIndividual({
   const [pregunta_contestada_correctamente, setPregunta_contestada_correctamente] = useState(false);
   const [cantidad_de_intentos, setCantidad_de_intentos] = useState(0);
   // console.log(`pregunta.answers:`, pregunta.answers);
+  // Arreglo de respuestas de opción múltiple a utilizar
+  const [listaRespuestasOpcionMultiple, setListaRespuestasOpcionMultiple] = useState(
+    pregunta.answers
+  );
   // Arreglo de elementos de la tabla a completar
   const [listaElementosTabla, setListaElementosTabla] = useState(pregunta.answers);
   // let tmpPregunta = <></>;
@@ -361,6 +366,19 @@ export default function RenderPreguntaIndividual({
       );
     };
 
+    const renderPreguntaOpcionMultiple = (pregunta) => {
+      return (
+        <RespuestaOpcionMultiple
+          listaRespuestas={listaRespuestasOpcionMultiple}
+          setListaRespuestas={setListaRespuestasOpcionMultiple}
+          valorPuntosPregunta={pregunta.totalScore}
+          isDisabled={false}
+          contestadaCorrectamente={pregunta_contestada_correctamente}
+          preguntaContestada={cantidad_de_intentos}
+        />
+      );
+    };
+
     const renderPreguntaIntervaloNumerico = (pregunta) => {
       return (
         <RespuestaIntervaloNumerico
@@ -423,7 +441,9 @@ export default function RenderPreguntaIndividual({
       case "Abierta":
         componente_a_regresar = renderPreguntaAbierta(pregunta);
         break;
-      // "Opción múltiple"
+      case "Opción múltiple":
+        componente_a_regresar = renderPreguntaOpcionMultiple(pregunta);
+        break;
       case "Intervalo numérico":
         componente_a_regresar = renderPreguntaIntervaloNumerico(pregunta);
         break;

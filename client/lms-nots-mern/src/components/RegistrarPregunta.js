@@ -135,6 +135,18 @@ export default function RegistrarPregunta({ handleSubmitExterno = null }) {
           return respuestasCorrectasTabla;
         });
       }
+    } else if (tipoPreguntaDict[tipoPregunta] === "Opción múltiple") {
+      // Guardamos todas las opciones de la pregunta en answers
+      setAnswers(() => {
+        let listaRespuestasAGuardar = listaRespuestas;
+        return listaRespuestasAGuardar;
+      });
+      setCorrectAnswers(() => {
+        let listaRespuestasCorrectas = listaRespuestas.filter(
+          (respuesta) => respuesta.correcta === true
+        );
+        return listaRespuestasCorrectas;
+      });
     }
   }, [listaRespuestas, tipoPregunta, listaElementosTabla]);
 
@@ -145,7 +157,12 @@ export default function RegistrarPregunta({ handleSubmitExterno = null }) {
       setAnswers("");
       setCorrectAnswers(["Algo"]);
     } else if (tipoPreguntaDict[tipoPregunta] === "Opción múltiple") {
-      setAnswers([]);
+      // Guardamos todas las opciones de la pregunta en answers
+      setAnswers(() => {
+        // Creamos una Deep Copy de la variable listaRespuestas para que al alterar listaRespuestasAGuardar no modifiquemos la original, es decir, que cada una tenga una dirección de memodia diferente pero con los mismos valores hasta ahora
+        let listaRespuestasAGuardar = listaRespuestas;
+        return listaRespuestasAGuardar;
+      });
       setCorrectAnswers(() => {
         // La función .filter() regresa una "Shallow copy" del arreglo listaRespuestas, lo que significa que si cambio el arreglo original o la "Shallow copy", estaré alterando ambos, ya que una "Shallow copy" regresa los valores de la variable partiendo desde la misma dirección de memoria que la variable original.
         // A diferencia de lo que estoy haciendo aquí, una "Deep copy", la cual copia los valores obtenidos por la función .filter() y los asigna a una variable independiente a la listaRespuestas, es decir, utiliza otra dirección de memoria.

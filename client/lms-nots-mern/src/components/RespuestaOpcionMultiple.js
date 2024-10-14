@@ -3,8 +3,16 @@ import Swal from "sweetalert2";
 
 export default function RespuestaOpcionMultiple({
   listaRespuestas,
-  setListaRespuestas,
+  setListaRespuestas = null,
   valorPuntosPregunta = 0,
+  // isDisabled es un booleano que indica si se está contestando o no la pregunta, por lo tanto:
+  // isDisabled = true -> Se está editando la pregunta
+  // isDisabled = false -> Se está contestando la pregunta
+  isDisabled = true,
+  // contestadaCorrectamente es un booleano que se utiliza para darle estilos al input según si se contestón o no correctamente la pregunta
+  contestadaCorrectamente = false,
+  // preguntaContestada es un booleano que indica si se contestó en algún momento la pregunta
+  preguntaContestada = false,
 }) {
   const [cantidadRespuestasCorrectas, setCantidadRespuestasCorrectas] = useState(0);
 
@@ -26,6 +34,7 @@ export default function RespuestaOpcionMultiple({
         id: generateUniqueId(),
         respuesta: "",
         correcta: false,
+        seleccionada: false,
         valorRespuesta: 0,
       },
     ]);
@@ -87,47 +96,97 @@ export default function RespuestaOpcionMultiple({
     <div className="d-flex flex-column justify-content-center align-items-center w-100">
       {listaRespuestas.length > 0 ? (
         <div className="d-flex flex-column justify-content-center align-items-baseline mb-3 pb-3 bg-body-secondary rounded-3">
-          <p className="px-3 py-1 m-0">Las respuestas se actualizan al cambiar su valor.</p>
+          <p className={isDisabled ? "d-block px-3 py-1 m-0" : "d-none px-3 py-1 m-0"}>
+            Las respuestas se actualizan al cambiar su valor.
+          </p>
           <div className="d-flex justify-content-center align-items-center px-3 py-1">
             <p className="m-0 me-1">Valor total por contestar correctamente: </p>
             <h4 className="m-0">{valorPuntosPregunta} puntos</h4>
           </div>
           <div className="d-flex justify-content-center align-items-center w-100 flex-wrap">
-            {listaRespuestas.map((respuesta, index) => (
-              <div
-                key={respuesta.id}
-                className="d-flex flex-column justify-content-center align-items-center bg-body-tertiary rounded-2 border-light-subtle border-2 m-1 p-1">
-                <p>
-                  Puntos de esta respuesta:{" "}
-                  <span className="text-primary-emphasis fw-bold">
-                    {respuesta.valorRespuesta} puntos
-                  </span>
-                </p>
-                <input
-                  type="text"
-                  name="respuesta"
-                  value={respuesta.respuesta}
-                  onChange={(e) => handleActualizarRespuesta(e, index)}
-                />
-                <label>
-                  <input
-                    type="checkbox"
-                    name="correcta"
-                    checked={respuesta.correcta}
-                    onChange={(e) => handleActualizarRespuesta(e, index)}
-                    className="me-1"
-                  />
-                  Correcta
-                </label>
-                <div className="d-flex justify-content-center align-items-center mb-3">
-                  <button
-                    className="btn btn-danger"
-                    onClick={(e) => handleConfirmarBorrarRespuesta(e, index)}>
-                    Borrar
-                  </button>
-                </div>
-              </div>
-            ))}
+            <ol type="A">
+              {listaRespuestas.map((respuesta, index) => {
+                if (!isDisabled) {
+                  return (
+                    <div
+                      key={respuesta.id}
+                      className="d-flex flex-column justify-content-center align-items-center bg-body-tertiary rounded-2 border-light-subtle border-2 m-1 p-1">
+                      {/* <input type="text" name="respuesta" value={respuesta.respuesta} /> */}
+                      {/* 
+                      ======================================================================
+                      ======================================================================
+                      ======================================================================
+                      RENDERIZAR BIEN LA PREGUNTA DE OPCIÓN MÚLTIPLE Y PROBAR SU FUNCIONAMIENTO CON Y SIN CONTENIDOS CON Y SIN IMG Y LINKS
+                      DESPUÉS PASAR A EL JUEGO DE PREGUNTAS SECUENCIALES (EL DE LAS PUERTAS) Y LUEGO PROBARLO
+                      ======================================================================
+                      ======================================================================
+                      ======================================================================
+                      
+                      
+                      */}
+                      <li>
+                        <label>
+                          <input
+                            type="checkbox"
+                            name="seleccionada"
+                            checked={respuesta.seleccionada}
+                            onChange={(e) => handleActualizarRespuesta(e, index)}
+                            className="me-1"
+                          />
+                          {respuesta.respuesta}
+                        </label>
+                      </li>
+
+                      <div className="d-flex justify-content-center align-items-center mb-3">
+                        <button
+                          className="btn btn-danger"
+                          onClick={(e) => handleConfirmarBorrarRespuesta(e, index)}>
+                          Borrar
+                        </button>
+                      </div>
+                    </div>
+                  );
+                } else {
+                  return (
+                    <div
+                      key={respuesta.id}
+                      className="d-flex flex-column justify-content-center align-items-center bg-body-tertiary rounded-2 border-light-subtle border-2 m-1 p-1">
+                      <p>
+                        Puntos de esta respuesta:{" "}
+                        <span className="text-primary-emphasis fw-bold">
+                          {respuesta.valorRespuesta} puntos
+                        </span>
+                      </p>
+                      <li>
+                        <input
+                          type="text"
+                          name="respuesta"
+                          value={respuesta.respuesta}
+                          onChange={(e) => handleActualizarRespuesta(e, index)}
+                        />
+                        <label>
+                          <input
+                            type="checkbox"
+                            name="correcta"
+                            checked={respuesta.correcta}
+                            onChange={(e) => handleActualizarRespuesta(e, index)}
+                            className="me-1"
+                          />
+                          Correcta
+                        </label>
+                      </li>
+                      <div className="d-flex justify-content-center align-items-center mb-3">
+                        <button
+                          className="btn btn-danger"
+                          onClick={(e) => handleConfirmarBorrarRespuesta(e, index)}>
+                          Borrar
+                        </button>
+                      </div>
+                    </div>
+                  );
+                }
+              })}
+            </ol>
           </div>
         </div>
       ) : (
