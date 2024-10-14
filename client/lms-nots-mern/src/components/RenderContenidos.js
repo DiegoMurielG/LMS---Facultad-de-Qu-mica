@@ -194,8 +194,11 @@ export default function RenderContenidos({
 
     // console.log(`tmpTexto: `, tmpTexto);
 
+    // Utilizado para crear las Keys de los contenidos creados
+    let contadorDeContenidoRenderizado = 0;
     // Procesamos todo el texto buscando etiquetas <img> y <a>
     while (tmpTexto.length > 0) {
+      contadorDeContenidoRenderizado++;
       let indexImg = tmpTexto.search(/<img name="/);
       let indexLink = tmpTexto.search(/<a href="/);
 
@@ -204,7 +207,11 @@ export default function RenderContenidos({
         // Extraemos el texto antes de la imagen
         let textoAntesDeImg = tmpTexto.slice(0, indexImg);
         if (textoAntesDeImg) {
-          arreglo_objetos_contenido.push(<p>{textoAntesDeImg}</p>);
+          arreglo_objetos_contenido.push(
+            <p key={`texto-antes-de-img-contenido-renderizado-${contadorDeContenidoRenderizado}`}>
+              {textoAntesDeImg}
+            </p>
+          );
         }
 
         // Procesamos la imagen
@@ -235,7 +242,7 @@ export default function RenderContenidos({
                 maxWidth: "1500px",
               }}
               className="mb-3"
-              key={`img-${imgObjeto.name}`}
+              key={`img-contenido-renderizado-${imgObjeto.name}-${contadorDeContenidoRenderizado}`}
               src={direccionImg}
               alt={imgObjeto.name || "error"}
             />
@@ -250,7 +257,11 @@ export default function RenderContenidos({
         // Extraemos el texto antes del link
         let textoAntesDeLink = tmpTexto.slice(0, indexLink);
         if (textoAntesDeLink) {
-          arreglo_objetos_contenido.push(<p>{textoAntesDeLink}</p>);
+          arreglo_objetos_contenido.push(
+            <p key={`texto-antes-de-link-contenido-renderizado-${contadorDeContenidoRenderizado}`}>
+              {textoAntesDeLink}
+            </p>
+          );
         }
 
         // Procesamos el link
@@ -266,7 +277,7 @@ export default function RenderContenidos({
           arreglo_objetos_contenido.push(
             <a
               className="link-opacity-75-hover"
-              key={`link-${linkObjeto.href}`}
+              key={`link-contenido-renderizado-${linkObjeto.href}-${contadorDeContenidoRenderizado}`}
               target="_blank"
               href={hrefLink || "error"}>
               {linkObjeto.text || "error"}
@@ -279,7 +290,11 @@ export default function RenderContenidos({
       }
       // Si no quedan más imágenes ni links, terminamos el texto restante
       else {
-        arreglo_objetos_contenido.push(<p>{tmpTexto}</p>);
+        arreglo_objetos_contenido.push(
+          <p key={`texto-final-contenido-renderizado-${contadorDeContenidoRenderizado}`}>
+            {tmpTexto}
+          </p>
+        );
         tmpTexto = "";
       }
     }
