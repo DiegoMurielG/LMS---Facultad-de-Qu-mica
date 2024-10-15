@@ -9,8 +9,10 @@ export default function RespuestaOpcionMultiple({
   // isDisabled = true -> Se está editando la pregunta
   // isDisabled = false -> Se está contestando la pregunta
   isDisabled = true,
+
   // contestadaCorrectamente es un booleano que se utiliza para darle estilos al input según si se contestón o no correctamente la pregunta
   contestadaCorrectamente = false,
+
   // preguntaContestada es un booleano que indica si se contestó en algún momento la pregunta
   preguntaContestada = false,
 }) {
@@ -110,8 +112,7 @@ export default function RespuestaOpcionMultiple({
                   ? contestadaCorrectamente
                     ? "form-control is-valid" // Cuando contestadaCorrectamente es true
                     : "form-control is-invalid" // Cuando contestadaCorrectamente es false
-                  : // <div className="invalid-feedback">Respuesta incorrecta.</div>
-                    "form-control" // Cuando preguntaContestada es false (es 0)
+                  : "form-control" // Cuando preguntaContestada es false (es 0)
               }>
               <ol
                 type="A"
@@ -122,19 +123,6 @@ export default function RespuestaOpcionMultiple({
                       <div
                         key={respuesta.id}
                         className="d-flex flex-column justify-content-center align-items-center bg-body-tertiary rounded-2 border-light-subtle border-2 mx-3 my-1 p-1">
-                        {/* <input type="text" name="respuesta" value={respuesta.respuesta} /> */}
-                        {/* 
-                      ======================================================================
-                      ======================================================================
-                      ======================================================================
-                      RENDERIZAR BIEN LA PREGUNTA DE OPCIÓN MÚLTIPLE Y PROBAR SU FUNCIONAMIENTO CON Y SIN CONTENIDOS CON Y SIN IMG Y LINKS
-                      DESPUÉS PASAR A EL JUEGO DE PREGUNTAS SECUENCIALES (EL DE LAS PUERTAS) Y LUEGO PROBARLO
-                      ======================================================================
-                      ======================================================================
-                      ======================================================================
-                      
-                      
-                      */}
                         <li>
                           <div>
                             <input
@@ -150,21 +138,7 @@ export default function RespuestaOpcionMultiple({
                               {respuesta.respuesta}
                             </label>
                           </div>
-                          {/* <label>
-                          <input
-                            type="checkbox"
-                            // className="me-1"
-                          />
-                        </label> */}
                         </li>
-
-                        {/* <div className="d-flex justify-content-center align-items-center mb-3">
-                        <button
-                          className="btn btn-danger"
-                          onClick={(e) => handleConfirmarBorrarRespuesta(e, index)}>
-                          Borrar
-                        </button>
-                      </div> */}
                       </div>
                     );
                   } else {

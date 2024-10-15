@@ -22,3 +22,12 @@
 # yarn-debug.log*
 # yarn-error.log*
 node_modules
+
+# ======================================================================
+#                       ======================================================================
+#                       ======================================================================
+#                       DESPUÉS PASAR A EL JUEGO DE PREGUNTAS SECUENCIALES (EL DE LAS PUERTAS) Y PROBAR SU FUNCIONAMIENTO CON Y SIN CONTENIDOS CON Y SIN IMG Y LINKS
+#                       CORREGIR LA EXPORTACIÓN DE DATOS PARA QUE INCLUYA LOS INTENTOS QUE SE TARDÓ EL USUARIO ENC ONTESTAR CORRECTAMENTE UNA PREGUNTA
+#                       ======================================================================
+#                       ======================================================================
+#                       ======================================================================
