@@ -333,6 +333,20 @@ export default function RenderPreguntaIndividual({
     };
   }, [pregunta, obj_actividad_a_renderizar]);
 
+  // useEffect para filtrar las respuestas de opción múltiple al cargar la respuesta y evitar trampas
+  useEffect(() => {
+    setListaRespuestasOpcionMultiple((prevList) => {
+      let answersCopyList = [...prevList];
+      let newAnswersList = answersCopyList.map((answer) => {
+        return {
+          ...answer,
+          correcta: false,
+        };
+      });
+      return newAnswersList;
+    });
+  }, []); // Si la lista solo necesita inicializarse una vez, puedes dejar las dependencias vacías.
+
   // useEffect(() => {
   //   if (pregunta.typeOfQuestion === "Completar número en tabla") {
   //     tmpPregunta = handleRenderPregunta(pregunta);
@@ -514,6 +528,41 @@ export default function RenderPreguntaIndividual({
       if (obj_actividad_a_renderizar) {
         // Usa 'es_correcta' en lugar del estado que se actualizará asíncronamente
         modificar_pregunta_en_obj_actividad_a_renderizar(id_pregunta, data_respuesta, es_correcta);
+      }
+    };
+
+    const evaluarPreguntaOpcionMultiple = (pregunta_contra_la_que_comparar) => {
+      let es_correcta = false;
+      let respuestasUsuario = [];
+
+      if (listaRespuestasOpcionMultiple && pregunta_contra_la_que_comparar.correctAnswer) {
+        respuestasUsuario = listaRespuestasOpcionMultiple.filter(
+          (respuesta) => respuesta.seleccionada
+        );
+        let respuestasCorrectas = pregunta_contra_la_que_comparar.correctAnswer;
+
+        // Ej.: [true, true, false], en este caso 2 de 3 opciones correctas fuerón seleccionadas, por lo tanto, la pregunta está incompleta y por ende incorrecta
+        let arregloBoolCorrecto = respuestasUsuario.map((respuestaUsuario) => {
+          return respuestasCorrectas.find(({ id }) => id === respuestaUsuario.id);
+        });
+
+        if (!arregloBoolCorrecto.includes(undefined) && arregloBoolCorrecto.length > 0) {
+          es_correcta = true;
+          setPregunta_contestada_correctamente(true);
+        } else {
+          es_correcta = false;
+          setPregunta_contestada_correctamente(false);
+        }
+      }
+
+      // Si no estamos visualizando la pregunta en edición, es decir, si tenemos un objeto obj_actividad_a_renderizar a renderizar, guarda la respuesta en el objeto
+      if (obj_actividad_a_renderizar) {
+        // Usa 'es_correcta' en lugar de 'pregunta_contestada_correctamente'
+        modificar_pregunta_en_obj_actividad_a_renderizar(
+          pregunta_contra_la_que_comparar._id,
+          respuestasUsuario,
+          es_correcta
+        );
       }
     };
 
@@ -749,7 +798,9 @@ export default function RenderPreguntaIndividual({
       case "Abierta":
         evaluarPreguntaAbierta(pregunta._id);
         break;
-      // "Opción múltiple"
+      case "Opción múltiple":
+        evaluarPreguntaOpcionMultiple(pregunta);
+        break;
       case "Intervalo numérico":
         evaluarPreguntaIntervaloNumerico(pregunta);
         break;
