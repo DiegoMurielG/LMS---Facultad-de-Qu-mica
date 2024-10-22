@@ -2356,7 +2356,7 @@ router.get("/exportar-respuestas", async (req, res) => {
               // Busca el nombre de la pregunta
               const questionData = await QuestionModel.findById(question.idQuestion, "question");
               // Busca el tipo de la pregunta
-              const typeOfQuestionObj = await QuestionModel.findById(
+              let typeOfQuestionObj = await QuestionModel.findById(
                 question.idQuestion,
                 "typeOfQuestion"
               );
