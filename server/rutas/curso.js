@@ -2361,6 +2361,9 @@ router.get("/exportar-respuestas", async (req, res) => {
                 "typeOfQuestion"
               );
               console.log(`typeOfQuestionObj: `, typeOfQuestionObj);
+              if (typeOfQuestionObj == null) {
+                typeOfQuestionObj = { typeOfQuestion: "To default switch case" };
+              }
               // Filtramos lo que se muestra en la columna de Respuesta del usuario y respuesta correcta según el tipo de pregunta
               let respuestaUsuario = "";
               let respuestaCorrecta = "";
@@ -2437,6 +2440,8 @@ router.get("/exportar-respuestas", async (req, res) => {
                   respuestaCorrecta;
                   break;
                 default:
+                  respuestaUsuario = "To default switch case";
+                  respuestaCorrecta = "To default switch case";
                   break;
               }
 
