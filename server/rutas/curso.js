@@ -2354,13 +2354,16 @@ router.get("/exportar-respuestas", async (req, res) => {
 
             for (const question of task.questions) {
               // Busca el nombre de la pregunta
-              const questionData = await QuestionModel.findById(question.idQuestion).select(
-                "question"
-              );
+              const questionData = await QuestionModel.findById(question.idQuestion, "question");
               // Busca el tipo de la pregunta
-              const typeOfQuestionObj = await QuestionModel.findById(question.idQuestion).select(
+              let typeOfQuestionObj = await QuestionModel.findById(
+                question.idQuestion,
                 "typeOfQuestion"
               );
+              console.log(`typeOfQuestionObj: `, typeOfQuestionObj);
+              if (typeOfQuestionObj == null) {
+                typeOfQuestionObj = { typeOfQuestion: "To default switch case" };
+              }
               // Filtramos lo que se muestra en la columna de Respuesta del usuario y respuesta correcta según el tipo de pregunta
               let respuestaUsuario = "";
               let respuestaCorrecta = "";
@@ -2437,6 +2440,8 @@ router.get("/exportar-respuestas", async (req, res) => {
                   respuestaCorrecta;
                   break;
                 default:
+                  respuestaUsuario = "To default switch case";
+                  respuestaCorrecta = "To default switch case";
                   break;
               }
 
