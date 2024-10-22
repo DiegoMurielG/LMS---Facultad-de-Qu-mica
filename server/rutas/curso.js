@@ -2357,6 +2357,73 @@ router.get("/exportar-respuestas", async (req, res) => {
               const questionData = await QuestionModel.findById(question.idQuestion).select(
                 "question"
               );
+              // Filtramos lo que se muestra en la columna de Respuesta del usuario y respuesta correcta según el tipo de pregunta
+              let respuestaUsuario = "";
+              let respuestaCorrecta = "";
+              switch (question.typeOfQuestion) {
+                case "Abierta":
+                  respuestaUsuario = question.userAnswer;
+                  respuestaCorrecta = "Respuesta libre.";
+                  break;
+                case "Opción múltiple":
+                  respuestaUsuario;
+                  respuestaCorrecta;
+                  break;
+                case "Intervalo numérico":
+                  // Ejemplo del formato de la respuesta del usuario
+                  /*
+                    question.userAnswer = [{"valor":"35.11","intervalo":[0,0]}]
+                  */
+                  // Por lo tanto, filtramos solo el valor
+                  respuestaUsuario = parseFloat(question.userAnswer.at(0).valor);
+
+                  // Ejemplo del formato de la respuesta correcta
+                  /*
+                    question.correctAnswer = [{"valor":0,"intervalo":[35,35.2]}]
+                  */
+                  // Por lo tanto, filtramos solo el intervalo
+                  let limiteInferior = parseFloat(question.correctAnswer.at(0).intervalo.at(0));
+                  let limiteSuperior = parseFloat(question.correctAnswer.at(0).intervalo.at(1));
+                  respuestaCorrecta = `Correcto de ${limiteInferior} a ${limiteSuperior}`;
+                  break;
+                case "Varias preguntas":
+                  respuestaUsuario;
+                  respuestaCorrecta;
+                  break;
+                case "Interactiva secuencial":
+                  respuestaUsuario;
+                  respuestaCorrecta;
+                  break;
+                case "Completar un texto":
+                  respuestaUsuario;
+                  respuestaCorrecta;
+                  break;
+                case "Llenar datos y graficar":
+                  respuestaUsuario;
+                  respuestaCorrecta;
+                  break;
+                case "Completar número en tabla":
+                  let respuestaUsuarioSinFormatear = question.userAnswer
+                    .at(0)
+                    .filter((celda) => celda.completar === true);
+                  respuestaUsuario = respuestaUsuarioSinFormatear.flatMap(
+                    (respuestaCorrectaUsuario) => respuestaCorrectaUsuario.respuesta
+                  );
+                  respuestaCorrecta = question.correctAnswer
+                    .at(0)
+                    .flatMap((respuestaCorrecta) => respuestaCorrecta.respuesta);
+                  break;
+                case "Video interactivo con preguntas":
+                  respuestaUsuario;
+                  respuestaCorrecta;
+                  break;
+                case "Secuencia de pasos":
+                  respuestaUsuario;
+                  respuestaCorrecta;
+                  break;
+                default:
+                  break;
+              }
 
               // Añadir el registro con los nombres de sección, actividad y pregunta
               records.push({
