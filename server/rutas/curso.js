@@ -2357,10 +2357,14 @@ router.get("/exportar-respuestas", async (req, res) => {
               const questionData = await QuestionModel.findById(question.idQuestion).select(
                 "question"
               );
+              // Busca el tipo de la pregunta
+              const typeOfQuestionObj = await QuestionModel.findById(question.idQuestion).select(
+                "typeOfQuestion"
+              );
               // Filtramos lo que se muestra en la columna de Respuesta del usuario y respuesta correcta según el tipo de pregunta
               let respuestaUsuario = "";
               let respuestaCorrecta = "";
-              switch (question.typeOfQuestion) {
+              switch (typeOfQuestionObj.typeOfQuestion) {
                 case "Abierta":
                   respuestaUsuario = question.userAnswer;
                   respuestaCorrecta = "Respuesta libre.";
@@ -2375,7 +2379,9 @@ router.get("/exportar-respuestas", async (req, res) => {
                     question.userAnswer = [{"valor":"35.11","intervalo":[0,0]}]
                   */
                   // Por lo tanto, filtramos solo el valor
-                  respuestaUsuario = parseFloat(question.userAnswer.at(0).valor);
+                  respuestaUsuario = question.userAnswer.at(0)
+                    ? parseFloat(question.userAnswer.at(0).valor)
+                    : "Vacío";
 
                   // Ejemplo del formato de la respuesta correcta
                   /*
@@ -2403,15 +2409,24 @@ router.get("/exportar-respuestas", async (req, res) => {
                   respuestaCorrecta;
                   break;
                 case "Completar número en tabla":
-                  let respuestaUsuarioSinFormatear = question.userAnswer
-                    .at(0)
-                    .filter((celda) => celda.completar === true);
-                  respuestaUsuario = respuestaUsuarioSinFormatear.flatMap(
-                    (respuestaCorrectaUsuario) => respuestaCorrectaUsuario.respuesta
+                  let respuestaUsuarioSinFormatear = null;
+                  if (question.userAnswer) {
+                    // Recorremos el la lista de arreglos con objetos de tipo celda y la filtramos según los que se deben de completar
+                    let respuestasACompletar = question.userAnswer.flatMap((fila) => {
+                      return fila.filter((celda) => celda.completar === true);
+                    });
+                    respuestaUsuarioSinFormatear = respuestasACompletar;
+                  } else {
+                    respuestaUsuarioSinFormatear = question.userAnswer;
+                  }
+                  respuestaUsuario = respuestaUsuarioSinFormatear
+                    ? respuestaUsuarioSinFormatear.flatMap(
+                        (respuestaCorrectaUsuario) => respuestaCorrectaUsuario.respuesta
+                      )
+                    : "Vacío";
+                  respuestaCorrecta = question.correctAnswer.flatMap(
+                    (respuestaCorrecta) => respuestaCorrecta.respuesta
                   );
-                  respuestaCorrecta = question.correctAnswer
-                    .at(0)
-                    .flatMap((respuestaCorrecta) => respuestaCorrecta.respuesta);
                   break;
                 case "Video interactivo con preguntas":
                   respuestaUsuario;
@@ -2435,8 +2450,8 @@ router.get("/exportar-respuestas", async (req, res) => {
                 nombreTask: taskData?.name || "Sin nombre", // Nombre de la actividad
                 questionId: question.idQuestion,
                 nombreQuestion: questionData?.question || "Sin nombre", // Nombre de la pregunta
-                userAnswer: question.userAnswer,
-                correctAnswer: JSON.stringify(question.correctAnswer), // Convertir respuesta correcta a string si es necesario
+                userAnswer: respuestaUsuario,
+                correctAnswer: respuestaCorrecta, // Convertir respuesta correcta a string si es necesario
                 totalScore: question.totalScore,
                 answeredScore: question.answeredScore,
               });
