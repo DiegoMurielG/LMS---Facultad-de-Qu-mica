@@ -13,6 +13,7 @@ import RespuestaCompletarNumerosTabla from "./RespuestaCompletarNumerosTabla";
 import RespuestaVideoInteractivo from "./RespuestaVideoInteractivo";
 import RespuestaIntervaloNumerico from "./RespuestaIntervaloNumerico";
 import { json } from "react-router-dom";
+import RespuestaInteractivaSecuencial from "./RespuestaInteractivaSecuencial";
 
 export default function RegistrarPregunta({ handleSubmitExterno = null }) {
   // { actividades = [] }
@@ -829,10 +830,11 @@ export default function RegistrarPregunta({ handleSubmitExterno = null }) {
             <></>
           )}
           {tipoPregunta === 5 ? (
-            <>
-              <p>Por completar</p>
-            </>
+            <RespuestaInteractivaSecuencial />
           ) : (
+            // <>
+            //   <p>Por completar</p>
+            // </>
             <></>
           )}
           {tipoPregunta === 6 ? (

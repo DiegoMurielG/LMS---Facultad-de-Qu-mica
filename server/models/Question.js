@@ -62,6 +62,19 @@ const QuestionSchema = mongoose.Schema({
   ],
   questions: [
     // Arreglo con preguntas (se usa para guardar preguntas dentro de esta pregunta según el tipo: Varias preguntas o interactiva secuencial)
+    /*
+    Documentación en el documento de las características del LMS.
+    Ej.: 
+    [
+      {
+        ID_pregunta_hijo: El ID de la pregunta hijo que se está visualizando actualmente que el usuario debe contestar.
+        [Opcional] ID_pregunta_correcta: El ID de la pregunta a la que se manda si el usuario contesta correctamente.
+        [Opcional] ID_pregunta_incorrecta: El ID de la pregunta a la que se manda si el usuario contesta incorrectamente.
+
+      },
+      {...},...
+    ]
+    */
   ],
   numberOfAttempts: {
     type: Number,
