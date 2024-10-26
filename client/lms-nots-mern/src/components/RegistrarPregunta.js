@@ -15,7 +15,12 @@ import RespuestaIntervaloNumerico from "./RespuestaIntervaloNumerico";
 import { json } from "react-router-dom";
 import RespuestaInteractivaSecuencial from "./RespuestaInteractivaSecuencial";
 
-export default function RegistrarPregunta({ handleSubmitExterno = null }) {
+export default function RegistrarPregunta({
+  handleSubmitExterno = null,
+  adding_childern_question = false,
+  question = null,
+  setQuestion = null,
+}) {
   // { actividades = [] }
   // Hacer un formulario para registrar una pregunta, asignarla a una sección y mostrarla hasta abajo (Ver Secciones, Ver Actividades y Ver Preguntas)
   let pregunta = {
@@ -448,6 +453,11 @@ export default function RegistrarPregunta({ handleSubmitExterno = null }) {
             icon: "success",
           });
 
+          // Para las preguntas de tipo 5: interactiva-secuencial que utilizan este componente para registrar preguntas (preguntas hijo, correctas e incorrectas).
+          // Si se está añadiendo una pregunta hijo, entonces regresamos la pregunta
+          if (adding_childern_question) {
+            setQuestion(pregunta);
+          }
           // Reset del formulario
           resetForm();
         } else {
