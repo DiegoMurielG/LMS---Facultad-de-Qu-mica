@@ -20,6 +20,8 @@ export default function RegistrarPregunta({
   adding_childern_question = false,
   question = null,
   setQuestion = null,
+  registrandoPregunta = null,
+  setRegistrandoPregunta = null,
 }) {
   // { actividades = [] }
   // Hacer un formulario para registrar una pregunta, asignarla a una sección y mostrarla hasta abajo (Ver Secciones, Ver Actividades y Ver Preguntas)
@@ -593,7 +595,7 @@ export default function RegistrarPregunta({
   // Contenido del formulario sin la etiqueta <form />
   const contenidoFormularioRespuesta = (
     <>
-      <div className="mb-3">
+      <div className={adding_childern_question ? "d-none" : "d-block mb-3"}>
         <InputBuscador
           name={"actividadesBuscadas"}
           id={"floatingInput-actividades"}
@@ -620,8 +622,9 @@ export default function RegistrarPregunta({
           onChange={(e) => {
             // setTipoPregunta(tipoPreguntaDict[Number(e.target.value)]);
             setTipoPregunta(Number(e.target.value));
-          }}>
-          <option value={""} disabled selected>
+          }}
+          defaultValue={"default"}>
+          <option value={"default"} disabled>
             Eliga el tipo de pregunta que añadirá...
           </option>
           <option value="1">
@@ -939,7 +942,25 @@ export default function RegistrarPregunta({
       <button
         type={handleSubmitExterno ? "button" : "submit"}
         onClick={(e) => {
-          if (handleSubmitExterno) {
+          // En el caso en el que se esté reigistrando una "pregunta hijo" para el tipo de pregunta de "Interactiva Secuencial", reutilizamos la función para guardar una pregunta "handleSubmit(e)"
+          // De esta forma evitamos tener un <form /> dentro de otro <form /> y a la vez reutilizamos código ya existente
+          if (
+            handleSubmitExterno &&
+            setRegistrandoPregunta &&
+            setQuestion &&
+            handleSubmitExterno === "registrando-pregunta-hijo"
+          ) {
+            // Guardamos la pregunta en la DB
+            handleSubmit(e);
+
+            // Guardamos la pregunta en el componente de <RespuestaInteractivaSecuencial />
+            setQuestion(pregunta);
+
+            // Cambiamos el valor de registrandoPregunta a false para ocultar el componente de <RegistrarPregunta />
+            setRegistrandoPregunta(false);
+
+            // Si no se está registrando una pregunta tipo hijo, se utiliza la función que se proporcionó para el evento de "submit" (que en realidad es solo un click) del botón
+          } else if (handleSubmitExterno) {
             handleSubmitExterno(e);
           }
         }}

@@ -14,8 +14,9 @@ export default function PreguntaIndividual({
   //   (seccion_individual) => seccion_individual.id_tasks.includes(contenido._id)
   // )}
   // arreglo_objetos_preguntas_por_actividad={arreglo_objetos_preguntas_por_actividad}
-  rerenderPorActualizacionDeDatos,
-  setRerenderPorActualizacionDeDatos,
+  // Estos props se utilzian al renderizar una pregunta dentro del <ButtonToggleView /> de preguntas, cuando este componente <PreguntaIndividual /> se utiliza en el componente de <RespuestaInteractivaSecuencial /> estos props no son necesarios, por eso se declaran con un valor por defecto
+  rerenderPorActualizacionDeDatos = null,
+  setRerenderPorActualizacionDeDatos = null,
 }) {
   const [preguntaSeVe, setPreguntaSeVe] = useState(false);
   const [flechaSeccion, setFlechaPregunta] = useState(flechaVacia);
@@ -444,157 +445,164 @@ export default function PreguntaIndividual({
 
           {/* <RenderPreguntaIndividual pregunta={pregunta} /> */}
         </div>
-        <h2 className="my-3 mt-5">Actividades</h2>
-        <div className="d-flex flex-column justify-content-center align-items-center">
-          {arreglo_objetos_actividades_por_pregunta.length > 0 ? (
-            arreglo_objetos_actividades_por_pregunta.map((datos_actividad_individual, index) => {
-              if (datos_actividad_individual.questions.includes(pregunta._id.toString())) {
-                return (
-                  // Mostrar la posición de la actividad dentro de cada sección
-                  // ===============================================
-                  // ===============================================
-                  // ===============================================
-                  // ====== TIENES QUE HACER QUE LAS ACTIVIDADES Y PREGUNTAS GUARDEN SU POSICIÓN CON BASE AL PADRE, ES DECIR, QUE UNA ACTIVIDAD EN EL CAMPO DE POSICIÓN GUARDE UN ARREGLO DE TUPLAS DONDE CADA UNA SEA DE LA SIGUIENTE MANERA ======
-                  // =======
-                  // actividad =
-                  // {
-                  //   ...demásPropiedades,
-                  //     posicion: [
-                  //       {
-                  //         id_seccion: id_seccion_padre1,
-                  //         posicion_en_esta_seccion_padre: posicion_en_esta_seccion_padre1,
-                  //       },
-                  //       {
-                  //         id_seccion: id_seccion_padre2,
-                  //         posicion_en_esta_seccion_padre: posicion_en_esta_seccion_padre2,
-                  //       },
-                  //       Y más objetos con la posición según la sección
-                  //   ]
-                  // }
-                  // HACER LO MISMO PARA LAS PREGUNTAS PERO GUARDANDO EL ID DE LA ACTIVIDAD PADRE
-                  // ====
-                  // =========== TERMINAR DE CONSTRUIR LA ACTIVIDAD INDIVIDUAL ========
-                  // ===============================================
-                  // ===============================================
-                  <div
-                    key={index}
-                    className="d-flex justify-content-between align-items-center bg-body-secondary border-light-subtle rounded-3 p-1 mx-2 my-1 w-75">
-                    <button
-                      onClick={(e) => {
-                        e.preventDefault();
-                        handleRemoveThisTask(datos_actividad_individual._id);
-                      }}
-                      className="btn rounded-5 d-flex justify-content-center align-items-center p-1 me-1">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="16"
-                        height="16"
-                        fill="currentColor"
-                        className="bi bi-x-lg"
-                        viewBox="0 0 16 16">
-                        <path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8z" />
-                      </svg>
-                    </button>
-                    <h3 className="mx-3 my-2 text-nowrap">{datos_actividad_individual.name}</h3>
-                    <div className="form-floating my-2 mx-3 w-100">
-                      <input
-                        type="number"
-                        className="form-control"
-                        placeholder="Posición de la actividad"
-                        id="floatingInput-posicion-actividad"
-                        value={
-                          // pregunta.position.find(
-                          //   ({ id_actividad }) =>
-                          //     id_actividad === datos_actividad_individual._id.toString()
-                          // )?.posicion_en_esta_actividad_padre || 0
-                          posicionPregunta.find(
-                            (obj_posicion_pregunta_individual) =>
-                              obj_posicion_pregunta_individual.id_actividad.toString() ===
-                              datos_actividad_individual._id.toString()
-                          )?.posicion_en_esta_actividad_padre || 0
-                        }
-                        // {
-                        //   () => {
-                        //     // console.log(`actividad.position:${JSON.stringify(actividad.position)}`);
-                        //     const posicion = actividad.position.find(
-                        //       ({ id_seccion }) => id_seccion === datos_actividad_individual.id_section
-                        //     );
+        {/* Actividades */}
+        <div
+          className={
+            arreglo_objetos_actividades_por_pregunta === "Pregunta-hijo" ? "d-none" : "d-block"
+          }>
+          <h2 className="my-3 mt-5">Actividades</h2>
+          <div className="d-flex flex-column justify-content-center align-items-center">
+            {arreglo_objetos_actividades_por_pregunta.length > 0 &&
+            arreglo_objetos_actividades_por_pregunta != "Pregunta-hijo" ? (
+              arreglo_objetos_actividades_por_pregunta.map((datos_actividad_individual, index) => {
+                if (datos_actividad_individual.questions.includes(pregunta._id.toString())) {
+                  return (
+                    // Mostrar la posición de la actividad dentro de cada sección
+                    // ===============================================
+                    // ===============================================
+                    // ===============================================
+                    // ====== TIENES QUE HACER QUE LAS ACTIVIDADES Y PREGUNTAS GUARDEN SU POSICIÓN CON BASE AL PADRE, ES DECIR, QUE UNA ACTIVIDAD EN EL CAMPO DE POSICIÓN GUARDE UN ARREGLO DE TUPLAS DONDE CADA UNA SEA DE LA SIGUIENTE MANERA ======
+                    // =======
+                    // actividad =
+                    // {
+                    //   ...demásPropiedades,
+                    //     posicion: [
+                    //       {
+                    //         id_seccion: id_seccion_padre1,
+                    //         posicion_en_esta_seccion_padre: posicion_en_esta_seccion_padre1,
+                    //       },
+                    //       {
+                    //         id_seccion: id_seccion_padre2,
+                    //         posicion_en_esta_seccion_padre: posicion_en_esta_seccion_padre2,
+                    //       },
+                    //       Y más objetos con la posición según la sección
+                    //   ]
+                    // }
+                    // HACER LO MISMO PARA LAS PREGUNTAS PERO GUARDANDO EL ID DE LA ACTIVIDAD PADRE
+                    // ====
+                    // =========== TERMINAR DE CONSTRUIR LA ACTIVIDAD INDIVIDUAL ========
+                    // ===============================================
+                    // ===============================================
+                    <div
+                      key={index}
+                      className="d-flex justify-content-between align-items-center bg-body-secondary border-light-subtle rounded-3 p-1 mx-2 my-1 w-75">
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          handleRemoveThisTask(datos_actividad_individual._id);
+                        }}
+                        className="btn rounded-5 d-flex justify-content-center align-items-center p-1 me-1">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="16"
+                          height="16"
+                          fill="currentColor"
+                          className="bi bi-x-lg"
+                          viewBox="0 0 16 16">
+                          <path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8z" />
+                        </svg>
+                      </button>
+                      <h3 className="mx-3 my-2 text-nowrap">{datos_actividad_individual.name}</h3>
+                      <div className="form-floating my-2 mx-3 w-100">
+                        <input
+                          type="number"
+                          className="form-control"
+                          placeholder="Posición de la actividad"
+                          id="floatingInput-posicion-actividad"
+                          value={
+                            // pregunta.position.find(
+                            //   ({ id_actividad }) =>
+                            //     id_actividad === datos_actividad_individual._id.toString()
+                            // )?.posicion_en_esta_actividad_padre || 0
+                            posicionPregunta.find(
+                              (obj_posicion_pregunta_individual) =>
+                                obj_posicion_pregunta_individual.id_actividad.toString() ===
+                                datos_actividad_individual._id.toString()
+                            )?.posicion_en_esta_actividad_padre || 0
+                          }
+                          // {
+                          //   () => {
+                          //     // console.log(`actividad.position:${JSON.stringify(actividad.position)}`);
+                          //     const posicion = actividad.position.find(
+                          //       ({ id_seccion }) => id_seccion === datos_actividad_individual.id_section
+                          //     );
 
-                        //     // Verificar si el objeto fue encontrado, y acceder a la propiedad o devolver 0 si no existe
-                        //     const posicion_en_seccion = posicion
-                        //       ? posicion.posicion_en_esta_actividad_padre
-                        //       : 0;
-                        //     return posicion_en_seccion;
-                        //   }
-                        //   // actividad.position.find(
-                        //   //   ({ id_seccion }) => id_seccion === datos_actividad_individual.id_section
-                        //   // ).posicion_en_esta_seccion_padre || 0
-                        // }
-                        min={0}
-                        max={
-                          cantidad_preguntas_por_actividad.find((obj_cantidad) => {
+                          //     // Verificar si el objeto fue encontrado, y acceder a la propiedad o devolver 0 si no existe
+                          //     const posicion_en_seccion = posicion
+                          //       ? posicion.posicion_en_esta_actividad_padre
+                          //       : 0;
+                          //     return posicion_en_seccion;
+                          //   }
+                          //   // actividad.position.find(
+                          //   //   ({ id_seccion }) => id_seccion === datos_actividad_individual.id_section
+                          //   // ).posicion_en_esta_seccion_padre || 0
+                          // }
+                          min={0}
+                          max={
+                            cantidad_preguntas_por_actividad.find((obj_cantidad) => {
+                              return (
+                                obj_cantidad.id_task.toString() ===
+                                datos_actividad_individual._id.toString()
+                              );
+                            }).cantidad_preguntas
+                          }
+                          onChange={(e) => {
+                            handleChangePosicionPregunta(e, datos_actividad_individual);
+                          }}
+                        />
+                        <label htmlFor="floatingInput-posicion-actividad">
+                          Posición de la pregunta [{0}-
+                          {cantidad_preguntas_por_actividad.find((obj_cantidad) => {
                             return (
                               obj_cantidad.id_task.toString() ===
                               datos_actividad_individual._id.toString()
                             );
-                          }).cantidad_preguntas
-                        }
-                        onChange={(e) => {
-                          handleChangePosicionPregunta(e, datos_actividad_individual);
-                        }}
-                      />
-                      <label htmlFor="floatingInput-posicion-actividad">
-                        Posición de la pregunta [{0}-
-                        {cantidad_preguntas_por_actividad.find((obj_cantidad) => {
-                          return (
-                            obj_cantidad.id_task.toString() ===
-                            datos_actividad_individual._id.toString()
-                          );
-                        }).cantidad_preguntas - 1}
-                        ]
-                      </label>
-                    </div>
-                    {/* ========================================================= */}
-                    {/* ========================================================= */}
-                    {/* ========================================================= */}
-                    {/* ========================================================= */}
-                    {/* ===================MODIFICAR LA POSICIÓN DE LAS ACTIVIDADES DENTRO DE LA SECCIÓN EDITADA, PROBAR A AÑADIR Y ELIMINAR SECCIONES A UNA ACTIVIDAD, CAMBIAR LA POSICIÓN DE LA ACTIVIDAD EN LA SECCIÓN Y LUEGO IR A HACER LO MISMO PERO CON LAS PREGUNTAS, ACABAS ESTO A MÁS TARDAR HOY EN LA NOCHE MAÑANA EN LA MAÑANA(11 O 12/09/2024)=================== */}
-                    {/* ========================================================= */}
-                    {/* ========================================================= */}
-                    {/* ========================================================= */}
-                    {/* ========================================================= */}
+                          }).cantidad_preguntas - 1}
+                          ]
+                        </label>
+                      </div>
+                      {/* ========================================================= */}
+                      {/* ========================================================= */}
+                      {/* ========================================================= */}
+                      {/* ========================================================= */}
+                      {/* ===================MODIFICAR LA POSICIÓN DE LAS ACTIVIDADES DENTRO DE LA SECCIÓN EDITADA, PROBAR A AÑADIR Y ELIMINAR SECCIONES A UNA ACTIVIDAD, CAMBIAR LA POSICIÓN DE LA ACTIVIDAD EN LA SECCIÓN Y LUEGO IR A HACER LO MISMO PERO CON LAS PREGUNTAS, ACABAS ESTO A MÁS TARDAR HOY EN LA NOCHE MAÑANA EN LA MAÑANA(11 O 12/09/2024)=================== */}
+                      {/* ========================================================= */}
+                      {/* ========================================================= */}
+                      {/* ========================================================= */}
+                      {/* ========================================================= */}
 
-                    <button className="btn btn-primary">Ver</button>
-                  </div>
-                );
-              } else {
-                return <></>;
-              }
-            })
-          ) : (
-            <p>No se encontraron actividades, añada una!</p>
-          )}
-        </div>
-        <hr></hr>
-        <h3 className="mb-3 text-secondary-emphasis">Añadir actividades</h3>
-        <div className="mb-3">
-          <InputBuscador
-            name="actividadesBuscadas-en-seccion"
-            id="floatingInput-actividades-en-seccion"
-            placeholder="Busque actividades por nombre"
-            label="Actividades"
-            onChange={(e) => {
-              // console.log(e);
-              handleBuscarActividades(e);
-            }}
-            value={actividadesBuscadas || ""}
-            // searching={"actividades"}
-            elementosDisponibles={actividadesDisponibles}
-            elementosSeleccionados={actividadesSeleccionadas}
-            setElementosSeleccionados={setActividadesSeleccionadas}
-            aQuienAsignamos="pregunta"
-            queBuscamos="actividades"
-          />
+                      <button className="btn btn-primary">Ver</button>
+                    </div>
+                  );
+                } else {
+                  return <></>;
+                }
+              })
+            ) : (
+              <p>No se encontraron actividades, añada una!</p>
+            )}
+          </div>
+          <hr></hr>
+          <h3 className="mb-3 text-secondary-emphasis">Añadir actividades</h3>
+          <div className="mb-3">
+            <InputBuscador
+              name="actividadesBuscadas-en-seccion"
+              id="floatingInput-actividades-en-seccion"
+              placeholder="Busque actividades por nombre"
+              label="Actividades"
+              onChange={(e) => {
+                // console.log(e);
+                handleBuscarActividades(e);
+              }}
+              value={actividadesBuscadas || ""}
+              // searching={"actividades"}
+              elementosDisponibles={actividadesDisponibles}
+              elementosSeleccionados={actividadesSeleccionadas}
+              setElementosSeleccionados={setActividadesSeleccionadas}
+              aQuienAsignamos="pregunta"
+              queBuscamos="actividades"
+            />
+          </div>
         </div>
       </div>
     </div>
