@@ -67,9 +67,9 @@ const QuestionSchema = mongoose.Schema({
     Ej.: 
     [
       {
-        ID_pregunta_hijo: El ID de la pregunta hijo que se está visualizando actualmente que el usuario debe contestar.
-        [Opcional] ID_pregunta_correcta: El ID de la pregunta a la que se manda si el usuario contesta correctamente.
-        [Opcional] ID_pregunta_incorrecta: El ID de la pregunta a la que se manda si el usuario contesta incorrectamente.
+        id_pregunta_hijo: El ID de la pregunta hijo que se está visualizando actualmente que el usuario debe contestar.
+        [Opcional] id_pregunta_correcta: El ID de la pregunta a la que se manda si el usuario contesta correctamente.
+        [Opcional] id_pregunta_incorrecta: El ID de la pregunta a la que se manda si el usuario contesta incorrectamente.
 
       },
       {...},...

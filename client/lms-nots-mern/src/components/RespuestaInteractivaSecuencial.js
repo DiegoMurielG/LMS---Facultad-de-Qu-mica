@@ -37,6 +37,30 @@ export default function RespuestaInteractivaSecuencial() {
   const [registrandoPregunta, setRegistrandoPregunta] = useState(false);
   // let registrandoPregunta = false;
 
+  // Diccionario de estado para almacenar las preguntas cargadas
+  const [preguntasHijoData, setPreguntasHijoData] = useState({});
+
+  // Estado cargando de pregunta
+  let pregunta_cargando = {
+    _id: "Cargando...",
+    typeOfQuestion: "Cargando...",
+    position: 0, //Buscar la cantidad de preguntas que tiene la actividad seleccionada a la que pertenece esta pregunta y asignar esta pregunta hasta el final del arreglo = tasks.questions.lenght-1 // position es 0 porque aún no pertenece a ninguna actividad
+    completed: false,
+    idTask: [], // Buscar el ID de la actividad a la que pertenece la pregunta y guardarlo en este arreglo
+    idBody: "Cargando...", // ID del contenido que tiene el desarrollo previo a la pregunta
+    question: "Cargando...",
+    totalScore: 0,
+    answeredScore: 0, // Como aún no se contesta la pregunta, este valor es 0 por defecto
+    answers: [], // Arreglo||String de respuestas (String) que el usuario puede seleccionar para responder:
+    // [{ String } respuesta: valor,
+    // { String } respuesta: valor,
+    // { String } respuesta: valor, ...] || { String } respuesta: valor
+    correctAnswer: [], // Arreglo de respuestas correctas que el usuario tiene que seleccionar para marcar como completada (correcta) la pregunta
+    idFeedback: "Cargando...", // ID del contenido que tiene el desarrollo previo a la pregunta
+    contents: [],
+    questions: [],
+  };
+
   // API
   const api = axios.create({
     baseURL: process.env.REACT_APP_API_URL, // Usa la URL de la variable de entorno
@@ -70,30 +94,108 @@ export default function RespuestaInteractivaSecuencial() {
     setRegistrandoPregunta(true);
   };
 
+  // Se ejecuta cada vez que modifiquemos la lista de preguntas hijo
+  useEffect(() => {
+    const cargarPreguntasHijo = async () => {
+      // Obtenemos los IDs únicos de preguntas hijo, correctas e incorrectas para evitar llamadas redundantes
+      const idsPreguntas = listaPreguntasHijo
+        .flatMap((preguntaHijo) => [
+          preguntaHijo.id_pregunta_hijo,
+          preguntaHijo.id_pregunta_correcta,
+          preguntaHijo.id_pregunta_incorrecta,
+        ])
+        .filter((id) => id && !preguntasHijoData[id]);
+
+      // Cargamos los datos de todas las preguntas que necesitan cargarse
+      const preguntasCargadas = await Promise.all(
+        idsPreguntas.map(async (id) => {
+          const preguntaCargada = await buscarPreguntaPorId(id);
+          return { id, data: preguntaCargada || pregunta_cargando };
+        })
+      );
+
+      // Actualizamos el estado de preguntasHijoData con las preguntas cargadas
+      setPreguntasHijoData((prevState) => ({
+        ...prevState,
+        ...preguntasCargadas.reduce((acc, { id, data }) => {
+          acc[id] = data;
+          return acc;
+        }, {}),
+      }));
+    };
+
+    // Ejecutamos cargarPreguntasHijo solo si hay preguntas en listaPreguntasHijo
+    if (listaPreguntasHijo.length > 0) {
+      cargarPreguntasHijo();
+    }
+  }, [listaPreguntasHijo, preguntasHijoData]);
+
   // Se ejecuta cada vez que registramos una pregunta hijo nueva
   useEffect(() => {
     console.log(JSON.stringify(preguntaRegistrada));
     // Guardamos la pregunta registrada a la lista de preguntas hijo de la pregunta Interactiva Secuencial
     // Nos aseguramos de que la pregunta no sea un objeto vacío revisando que exista el atributo typeOfQuestion
-    if (
-      preguntaRegistrada.typeOfQuestion &&
-      !listaPreguntasHijo.find(({ _id }) => _id == preguntaRegistrada._id)
-    ) {
-      // Guardar el objeto con la pregunta registrada (pregunta hijo )con la siguiente estructura:
+    if (preguntaRegistrada.typeOfQuestion) {
+      // Actualizar el objeto con la pregunta registrada y las preguntas correcta e incorrecta si se crean (pregunta hijo) con la siguiente estructura:
       /*
       {
-        ID_pregunta_hijo: El ID de la pregunta hijo que se está visualizando actualmente que el usuario debe contestar.
-        [Opcional] ID_pregunta_correcta: El ID de la pregunta a la que se manda si el usuario contesta correctamente.
-        [Opcional] ID_pregunta_incorrecta: El ID de la pregunta a la que se manda si el usuario contesta incorrectamente.
+        id_pregunta_hijo: El ID de la pregunta hijo que se está visualizando actualmente que el usuario debe contestar.
+        [Opcional] id_pregunta_correcta: El ID de la pregunta a la que se manda si el usuario contesta correctamente.
+        [Opcional] id_pregunta_incorrecta: El ID de la pregunta a la que se manda si el usuario contesta incorrectamente.
 
       },
       */
 
-      // Luego cambiar la forma ne la que se renderiza condicionalmente la lista de "listaPreguntasHijo", ya que ahora esta tendrá los objetos de preguntas hijo que contienen hasta 3 preguntas diferentes
+      // Cambiar la forma ne la que se renderiza condicionalmente la lista de "listaPreguntasHijo", ya que ahora esta tendrá los objetos de preguntas hijo que contienen hasta 3 preguntas diferentes
       // Después añadir la opción de agregar una pregunta de tipo pregunta correcta e igual para la pregunta de tipo incorrecta (La misma funcionalidad de registrar una pregunta nueva que no pertenezca a ninguna activdad y, que cuando se registre se muestre en su lugar el componente de <PreguntaIndividual /> para poder tener un "CRUD" de preguntas correctas e incorrectas también)
-      setListaPreguntasHijo([...listaPreguntasHijo, preguntaRegistrada]);
+      // Añadir la búsqueda de preguntas en la DB para añadirlas como pregunta, pregunta correcta o pregunta incorrecta para no solo tener que darlas de alta ahí mismo
+      const preguntaRegistrada_obj = {
+        id_pregunta_hijo: preguntaRegistrada._id,
+        id_pregunta_correcta: "",
+        id_pregunta_incorrecta: "",
+      };
+      // Evitamos guardar preguntas con un _id vacío
+      if (preguntaRegistrada._id != "") {
+        // Evitamos duplicados
+
+        // Verifica si ya existe la pregunta en `listaPreguntasHijo`
+        const existePregunta = listaPreguntasHijo.some(
+          (pregunta) => pregunta.id_pregunta_hijo === preguntaRegistrada._id
+        );
+
+        if (!existePregunta) {
+          // Solo actualiza el estado si la pregunta no está en la lista
+          setListaPreguntasHijo((prevLista) => [...prevLista, preguntaRegistrada_obj]);
+          console.log(JSON.stringify(listaPreguntasHijo));
+        }
+        // if (!listaPreguntasHijo.find(({ _id }) => _id === preguntaRegistrada._id)) {
+        //   setListaPreguntasHijo([...listaPreguntasHijo, preguntaRegistrada_obj]);
+        // }
+      }
     }
   }, [preguntaRegistrada]);
+
+  /**
+   *  Función que busca por ID una pregunta y regresa un objeto de tipo Question con los datos de la pregunta buscada.
+   *
+   * @param {String} id_pregunta_a_buscar - ID de la pregunta a buscar
+   * @returns  {Object} pregunta - Objeto tipo Question que contiene los datos de la pregunta
+   */
+  const buscarPreguntaPorId = async (id_pregunta_a_buscar) => {
+    let objeto_pregunta = null;
+    try {
+      const response = await api.post("/buscar-preguntas", {
+        palabra_a_buscar: `#: ${id_pregunta_a_buscar.toString()}`,
+      });
+      if (response.data.docs) {
+        objeto_pregunta = response.data.docs[0];
+      }
+    } catch (error) {
+      console.error(`Error buscando la pregunta con ID: ${id_pregunta_a_buscar}\n`, error);
+    }
+    console.log(JSON.stringify(objeto_pregunta));
+    return objeto_pregunta;
+  };
 
   return (
     <div className="d-flex flex-column justify-content-center align-items-center rounded-3 border border-secondary-subtle border-2 w-100">
@@ -122,16 +224,26 @@ export default function RespuestaInteractivaSecuencial() {
         <div className="d-flex flex-column justify-content-center align-items-center w-100">
           {listaPreguntasHijo.length > 0 ? (
             listaPreguntasHijo.map((preguntaHijo, index) => {
+              // Buscamos la pregunta cargada en preguntasHijoData
+              const preguntaCargada = preguntasHijoData[preguntaHijo.id_pregunta_hijo];
+
+              // Mostramos un placeholder mientras cargamos los datos
               return (
                 <div key={`pregunta-hijo-${index}`} className="w-100">
-                  <PreguntaIndividual
-                    pregunta={preguntaHijo}
-                    flechaVacia={flechaVacia}
-                    flechaLlena={flechaLlena}
-                    cantidad_preguntas_por_actividad={"Pregunta-hijo"}
-                    arreglo_objetos_actividades_por_pregunta={"Pregunta-hijo"}
-                  />
-                  {/* <RenderPreguntaIndividual pregunta={preguntaHijo} /> */}
+                  <div>
+                    {preguntaCargada ? (
+                      <PreguntaIndividual
+                        pregunta={preguntaCargada}
+                        flechaVacia={flechaVacia}
+                        flechaLlena={flechaLlena}
+                        cantidad_preguntas_por_actividad={"Pregunta-hijo"}
+                        arreglo_objetos_actividades_por_pregunta={"Pregunta-hijo"}
+                      />
+                    ) : (
+                      // Muestra un componente o texto de "Cargando..." mientras se espera que la pregunta se cargue
+                      <span>Cargando...</span>
+                    )}
+                  </div>
                 </div>
               );
             })

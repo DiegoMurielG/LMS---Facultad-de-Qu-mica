@@ -432,21 +432,32 @@ export default function RegistrarPregunta({
       })
       .then((response) => {
         if (response.data.Status === 605) {
-          pregunta._id = response.data.content_id;
+          // Clona la pregunta y establece el _id de forma explícita
+          const nuevaPregunta = { ...pregunta, _id: response.data.content_id };
           // console.log(pregunta._id);
           // respuestaRegistrarPregunta = response.data.message;
           // Registrar pregunta en las actividades selecciondas si la asignamos a algunas actividades existentes mediante el InputBuscador de actividades
-          pregunta.idTask.forEach((id_actividad) => {
+          nuevaPregunta.idTask.forEach((id_actividad) => {
             api
               .post("/aniadir-pregunta-a-actividad", {
                 id_actividad: id_actividad,
-                id_pregunta: pregunta._id,
-                pregunta_totalScore: pregunta.totalScore,
+                id_pregunta: nuevaPregunta._id,
+                pregunta_totalScore: nuevaPregunta.totalScore,
               })
               .catch((error) => {
                 console.error(`Error actualizando la actividad ${id_actividad}.\n${error}`);
               });
           });
+
+          // Para las preguntas de tipo 5: interactiva-secuencial que utilizan este componente para registrar preguntas (preguntas hijo, correctas e incorrectas).
+          // Si se está añadiendo una pregunta hijo, entonces regresamos la pregunta
+          if (adding_childern_question) {
+            console.log(`nuevaPregunta:`, JSON.stringify(nuevaPregunta));
+            setQuestion(nuevaPregunta);
+          }
+
+          // Reset del formulario
+          resetForm();
 
           Swal.fire({
             title: response.data.message,
@@ -454,14 +465,6 @@ export default function RegistrarPregunta({
             showCancelButton: false,
             icon: "success",
           });
-
-          // Para las preguntas de tipo 5: interactiva-secuencial que utilizan este componente para registrar preguntas (preguntas hijo, correctas e incorrectas).
-          // Si se está añadiendo una pregunta hijo, entonces regresamos la pregunta
-          if (adding_childern_question) {
-            setQuestion(pregunta);
-          }
-          // Reset del formulario
-          resetForm();
         } else {
           Swal.fire({
             title: response.data.message,
