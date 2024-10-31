@@ -4,6 +4,7 @@ import Swal from "sweetalert2";
 import axios from "axios";
 import RenderPreguntaIndividual from "./RenderPreguntaIndividual";
 import PreguntaIndividual from "./PreguntaIndividual";
+import InputBuscador from "./InputBuscador";
 
 export default function RespuestaInteractivaSecuencial() {
   // Para la vizualización de la pregunta
@@ -34,11 +35,25 @@ export default function RespuestaInteractivaSecuencial() {
   // Para los <ButtonToggleView />
   const [rerenderPorActualizacionDeDatos, setRerenderPorActualizacionDeDatos] = useState(false);
 
+  // Input Buscador
+  const [preguntasBuscadas, setPreguntasBuscadas] = useState("");
+  const [preguntasDisponibles, setPreguntasDisponibles] = useState([]);
+  const [preguntasSeleccionadas, setPreguntasSeleccionadas] = useState([]);
+
   // listaPreguntasHijo == questions en Question
   const [listaPreguntasHijo, setListaPreguntasHijo] = useState([]);
   const [preguntaRegistrada, setPreguntaRegistrada] = useState({});
   const [registrandoPregunta, setRegistrandoPregunta] = useState(false);
   // let registrandoPregunta = false;
+
+  // Para elegir de donde crear la pregunta hijo
+  const [origenDeLaPreguntaHijo, setOrigenDeLaPreguntaHijo] = useState("");
+
+  // Para elegir de donde crear la pregunta correcta
+  const [origenDeLaPreguntaCorrecta, setOrigenDeLaPreguntaCorrecta] = useState("");
+
+  // Para elegir de donde crear la pregunta incorrecta
+  const [origenDeLaPreguntaIncorrecta, setOrigenDeLaPreguntaIncorrecta] = useState("");
 
   // Diccionario de estado para almacenar las preguntas cargadas
   const [preguntasHijoData, setPreguntasHijoData] = useState({});
@@ -69,6 +84,44 @@ export default function RespuestaInteractivaSecuencial() {
     baseURL: process.env.REACT_APP_API_URL, // Usa la URL de la variable de entorno
     withCredentials: true, // Si necesitas enviar cookies
   });
+
+  // Para elegir de donde crear la pregunta hijo
+  const elegirAccionParaCrearPreguntaHijo = (e) => {
+    e.preventDefault();
+    let origen_de_creacion = e.target.value;
+    setOrigenDeLaPreguntaHijo(origen_de_creacion);
+  };
+
+  const handleAgruegarPreguntaBuscada = async (e, tipoDePreguntaAAniadir) => {
+    e.preventDefault();
+    if (preguntasSeleccionadas.length > 0) {
+      // Buscamos la pregunta que tenemos con el ID del chip de la pregunta
+      const id_pregunta_a_buscar = preguntasSeleccionadas[0]._id;
+      let pregunta = null;
+      try {
+        const response = await api.post("/buscar-preguntas", {
+          palabra_a_buscar: `#: ${id_pregunta_a_buscar.toString()}`,
+        });
+        if (response.data.docs[0]) {
+          pregunta = response.data.docs[0];
+        }
+      } catch (error) {
+        console.error(`Error buscando la pregunta ID: ${id_pregunta_a_buscar}`.error);
+      }
+      if (tipoDePreguntaAAniadir == "pregunta-hijo") {
+        console.log(JSON.stringify(pregunta));
+        setPreguntaRegistrada(pregunta);
+      } else if (tipoDePreguntaAAniadir == "pregunta-correcta") {
+        // Agrega setPreguntaCorrecta
+      } else {
+        // tipoDePreguntaAAniadir == "pregunta-incorrecta"
+        // Agrega setPreguntaIncorrecta
+      }
+    }
+  };
+  // const buscarPreguntaExistente_ParaPreguntaHijo = () => {};
+
+  // const crearPreguntaExistente_ParaPreguntaHijo = () => {};
 
   const aniadirPreguntaHijo = () => {
     // const { value: pregunta } = await Swal.fire({
@@ -202,6 +255,64 @@ export default function RespuestaInteractivaSecuencial() {
     return objeto_pregunta;
   };
 
+  const handleBuscarPreguntas = (e) => {
+    e.preventDefault();
+
+    setPreguntasBuscadas(e.target.value);
+  };
+
+  // Búsqueda de preguntas en tiempo real por input del usuario
+  useEffect(() => {
+    // Buscar la pregunta escrita en la DB
+    api
+      .post("/buscar-preguntas", {
+        palabra_a_buscar: preguntasBuscadas,
+      })
+      .then((response) => {
+        // Obetnemos un arreglo con las coincidencias
+        const preguntasEncontradas = response.data.docs;
+        console.log(preguntasEncontradas);
+        if (preguntasEncontradas.length > 0) {
+          // Se encontró al menos 1 pregunta que coincide con el nombre escrito
+          // Las preguntas obtenidas serán guardadas en preguntasDisponibles
+          preguntasEncontradas.forEach((preguntaEncontrada) => {
+            // Guardamos el objeto de pregunta dentro de preguntasDisponibles evitando que se repita
+            let preguntaEstaDisponible = preguntasDisponibles.find((pregunta) => {
+              return pregunta._id === preguntaEncontrada._id;
+            });
+            if (!preguntaEstaDisponible) {
+              setPreguntasDisponibles([
+                ...preguntasDisponibles,
+                {
+                  _id: preguntaEncontrada._id,
+                  valor_puntos_pregunta: preguntaEncontrada.totalScore,
+                  nombre: (
+                    <>
+                      {preguntaEncontrada.question}
+                      <br></br>
+                      Tipo: {preguntaEncontrada.typeOfQuestion}
+                    </>
+                  ),
+                },
+              ]);
+            }
+          });
+        } else {
+          // No se encontrarón preguntas que coincidieran con el texto ingresado en "preguntasBuscados" dentro del InputBuscador
+          setPreguntasDisponibles([]);
+        }
+      })
+      .catch((error) => {
+        console.error(`Error buscando la pregunta ${preguntasBuscadas}.\n${error}`);
+      });
+  }, [preguntasBuscadas]);
+
+  useEffect(() => {
+    // Evitar modificar la pregunta hijo si no tenemos una pregunta buscada
+    if (preguntasSeleccionadas.length > 0) {
+    }
+  }, [preguntasSeleccionadas]);
+
   return (
     <div className="d-flex flex-column justify-content-center align-items-center rounded-3 border border-secondary-subtle border-2 w-100">
       {/* Instrucciones */}
@@ -225,8 +336,9 @@ export default function RespuestaInteractivaSecuencial() {
 
       {/* Añadir preguntas */}
       <div className="d-flex flex-column justify-content-center align-items-center bg-body-secondary rounded-3 w-100">
-        <h4>Preguntas hijo</h4>
+        <h4 className="mb-3">Preguntas hijo</h4>
         <div className="d-flex flex-column justify-content-center align-items-center w-100">
+          {listaPreguntasHijo.length > 0 ? <hr className="mb-3"></hr> : <></>}
           {listaPreguntasHijo.length > 0 ? (
             listaPreguntasHijo.map((preguntaHijo, index) => {
               // Buscamos la pregunta cargada en preguntasHijoData
@@ -311,14 +423,77 @@ export default function RespuestaInteractivaSecuencial() {
           )}
         </div>
         <div className={registrandoPregunta ? "d-block" : " d-none"}>
-          <RegistrarPregunta
-            handleSubmitExterno={"registrando-pregunta-hijo"}
-            adding_childern_question={true}
-            question={preguntaRegistrada}
-            setQuestion={setPreguntaRegistrada}
-            registrandoPregunta={registrandoPregunta}
-            setRegistrandoPregunta={setRegistrandoPregunta}
-          />
+          <div className="d-flex flex-column justify-content-center align-items-center">
+            <select
+              defaultValue={""}
+              onChange={(e) => {
+                elegirAccionParaCrearPreguntaHijo(e);
+              }}
+              className={registrandoPregunta ? "d-block mb-3" : "d-none"}>
+              <option value={""} disabled={true}>
+                <p>Eliga una acción a continuación</p>
+              </option>
+              <option value={"buscar-pregunta-existente"}>
+                <p className="m-0">Buscar pregunta existente</p>
+              </option>
+              <option value={"crear-pregunta-nueva"}>
+                <p className="m-0">Crear pregunta nueva</p>
+              </option>
+            </select>
+            <div
+              className={
+                registrandoPregunta && origenDeLaPreguntaHijo == "buscar-pregunta-existente"
+                  ? "d-block"
+                  : "d-none"
+              }>
+              <InputBuscador
+                name="preguntasBuscadas"
+                id="floatingInput-preguntas"
+                placeholder="Busque preguntas por nombre"
+                label="Preguntas"
+                onChange={(e) => {
+                  // console.log(e);
+                  handleBuscarPreguntas(e);
+                }}
+                value={preguntasBuscadas}
+                // searching={"actividades"}
+                elementosDisponibles={preguntasDisponibles}
+                elementosSeleccionados={preguntasSeleccionadas}
+                setElementosSeleccionados={setPreguntasSeleccionadas}
+                aQuienAsignamos="actividad"
+                queBuscamos="preguntas"
+                buscarSoloUnaPregunta={true}
+                renderizarPreguntaBuscada={true}
+              />
+              <button
+                type="button"
+                onClick={(e) => {
+                  handleAgruegarPreguntaBuscada(e, "pregunta-hijo");
+                }}
+                className={
+                  preguntasSeleccionadas.length > 0
+                    ? "enabled btn btn-primary my-3 w-100 btn-lg"
+                    : "disabled btn btn-primary my-3 w-100 btn-lg"
+                }>
+                Añadir pregunta buscada como pregunta hijo
+              </button>
+            </div>
+            <div
+              className={
+                registrandoPregunta && origenDeLaPreguntaHijo == "crear-pregunta-nueva"
+                  ? "d-block"
+                  : "d-none"
+              }>
+              <RegistrarPregunta
+                handleSubmitExterno={"registrando-pregunta-hijo"}
+                adding_childern_question={true}
+                question={preguntaRegistrada}
+                setQuestion={setPreguntaRegistrada}
+                registrandoPregunta={registrandoPregunta}
+                setRegistrandoPregunta={setRegistrandoPregunta}
+              />
+            </div>
+          </div>
         </div>
         <button type="button" onClick={aniadirPreguntaHijo} className="btn btn-success">
           Añadir pregunta hijo

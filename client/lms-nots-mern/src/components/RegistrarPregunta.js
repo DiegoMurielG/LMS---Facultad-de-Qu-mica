@@ -967,8 +967,16 @@ export default function RegistrarPregunta({
             handleSubmitExterno(e);
           }
         }}
-        className="btn btn-success my-3 w-100 btn-lg">
-        Añadir pregunta
+        className={
+          adding_childern_question
+            ? "btn btn-primary my-3 w-100 btn-lg"
+            : "btn btn-success my-3 w-100 btn-lg"
+        }>
+        {adding_childern_question ? (
+          <p className="m-0">Crear y añadir pregunta hijo</p>
+        ) : (
+          <p className="m-0">Añadir pregunta</p>
+        )}
       </button>
     </>
   );
@@ -976,7 +984,11 @@ export default function RegistrarPregunta({
   return (
     <div className="container w-100 d-flex flex-column justify-content-center align-items-center mb-5">
       <div className="d-flex justify-content-center align-items-center">
-        <h2 className="mb-3 me-3">Añadir pregunta</h2>
+        {adding_childern_question ? (
+          <h2 className="mb-3 me-3">Añadir pregunta hijo</h2>
+        ) : (
+          <h2 className="mb-3 me-3">Añadir pregunta</h2>
+        )}
         <svg
           xmlns="http://www.w3.org/2000/svg"
           width="1em"
