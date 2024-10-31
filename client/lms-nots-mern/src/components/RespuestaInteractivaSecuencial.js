@@ -31,6 +31,9 @@ export default function RespuestaInteractivaSecuencial() {
     </svg>
   );
 
+  // Para los <ButtonToggleView />
+  const [rerenderPorActualizacionDeDatos, setRerenderPorActualizacionDeDatos] = useState(false);
+
   // listaPreguntasHijo == questions en Question
   const [listaPreguntasHijo, setListaPreguntasHijo] = useState([]);
   const [preguntaRegistrada, setPreguntaRegistrada] = useState({});
@@ -146,6 +149,8 @@ export default function RespuestaInteractivaSecuencial() {
       },
       */
 
+      // Añadir el input buscador de preguntas para cada parte en la que podemos agregar preguntas
+
       // Cambiar la forma ne la que se renderiza condicionalmente la lista de "listaPreguntasHijo", ya que ahora esta tendrá los objetos de preguntas hijo que contienen hasta 3 preguntas diferentes
       // Después añadir la opción de agregar una pregunta de tipo pregunta correcta e igual para la pregunta de tipo incorrecta (La misma funcionalidad de registrar una pregunta nueva que no pertenezca a ninguna activdad y, que cuando se registre se muestre en su lugar el componente de <PreguntaIndividual /> para poder tener un "CRUD" de preguntas correctas e incorrectas también)
       // Añadir la búsqueda de preguntas en la DB para añadirlas como pregunta, pregunta correcta o pregunta incorrecta para no solo tener que darlas de alta ahí mismo
@@ -225,24 +230,78 @@ export default function RespuestaInteractivaSecuencial() {
           {listaPreguntasHijo.length > 0 ? (
             listaPreguntasHijo.map((preguntaHijo, index) => {
               // Buscamos la pregunta cargada en preguntasHijoData
-              const preguntaCargada = preguntasHijoData[preguntaHijo.id_pregunta_hijo];
+              const preguntaHijoCargada = preguntasHijoData[preguntaHijo.id_pregunta_hijo];
+              const preguntaCorrectaCargada = preguntasHijoData[preguntaHijo.id_pregunta_correcta];
+              const preguntaIncorrectaCargada =
+                preguntasHijoData[preguntaHijo.id_pregunta_incorrecta];
 
               // Mostramos un placeholder mientras cargamos los datos
               return (
-                <div key={`pregunta-hijo-${index}`} className="w-100">
-                  <div>
-                    {preguntaCargada ? (
+                <div key={`pregunta-hijo-${index}`} className="w-100 d-flex">
+                  <div className="w-50">
+                    {preguntaHijoCargada ? (
                       <PreguntaIndividual
-                        pregunta={preguntaCargada}
+                        pregunta={preguntaHijoCargada}
                         flechaVacia={flechaVacia}
                         flechaLlena={flechaLlena}
                         cantidad_preguntas_por_actividad={"Pregunta-hijo"}
                         arreglo_objetos_actividades_por_pregunta={"Pregunta-hijo"}
+                        rerenderPorActualizacionDeDatos={rerenderPorActualizacionDeDatos}
+                        setRerenderPorActualizacionDeDatos={setRerenderPorActualizacionDeDatos}
+                        en_pregunta_hijo={true}
                       />
                     ) : (
                       // Muestra un componente o texto de "Cargando..." mientras se espera que la pregunta se cargue
                       <span>Cargando...</span>
                     )}
+                  </div>
+                  <div className="w-50 d-flex flex-column">
+                    <div>
+                      <h5>Pregunta corecta</h5>
+                      <div>
+                        {preguntaCorrectaCargada ? (
+                          <PreguntaIndividual
+                            pregunta={preguntaCorrectaCargada}
+                            flechaVacia={flechaVacia}
+                            flechaLlena={flechaLlena}
+                            cantidad_preguntas_por_actividad={"Pregunta-correcta-de-pregunta-hijo"}
+                            arreglo_objetos_actividades_por_pregunta={
+                              "Pregunta-incorrecta-de-pregunta-hijo"
+                            }
+                            rerenderPorActualizacionDeDatos={rerenderPorActualizacionDeDatos}
+                            setRerenderPorActualizacionDeDatos={setRerenderPorActualizacionDeDatos}
+                            en_pregunta_hijo={true}
+                          />
+                        ) : (
+                          // Muestra un componente o texto de "Cargando..." mientras se espera que la pregunta se cargue
+                          <span>Cargando...</span>
+                        )}
+                      </div>
+                    </div>
+                    <div>
+                      <h5>Pregunta incorrecta</h5>
+                      <div>
+                        {preguntaIncorrectaCargada ? (
+                          <PreguntaIndividual
+                            pregunta={preguntaIncorrectaCargada}
+                            flechaVacia={flechaVacia}
+                            flechaLlena={flechaLlena}
+                            cantidad_preguntas_por_actividad={
+                              "Pregunta-incorrecta-de-pregunta-hijo"
+                            }
+                            arreglo_objetos_actividades_por_pregunta={
+                              "Pregunta-incorrecta-de-pregunta-hijo"
+                            }
+                            rerenderPorActualizacionDeDatos={rerenderPorActualizacionDeDatos}
+                            setRerenderPorActualizacionDeDatos={setRerenderPorActualizacionDeDatos}
+                            en_pregunta_hijo={true}
+                          />
+                        ) : (
+                          // Muestra un componente o texto de "Cargando..." mientras se espera que la pregunta se cargue
+                          <span>Cargando...</span>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 </div>
               );

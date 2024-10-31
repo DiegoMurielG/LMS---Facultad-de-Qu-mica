@@ -15,8 +15,9 @@ export default function PreguntaIndividual({
   // )}
   // arreglo_objetos_preguntas_por_actividad={arreglo_objetos_preguntas_por_actividad}
   // Estos props se utilzian al renderizar una pregunta dentro del <ButtonToggleView /> de preguntas, cuando este componente <PreguntaIndividual /> se utiliza en el componente de <RespuestaInteractivaSecuencial /> estos props no son necesarios, por eso se declaran con un valor por defecto
-  rerenderPorActualizacionDeDatos = null,
+  rerenderPorActualizacionDeDatos = false,
   setRerenderPorActualizacionDeDatos = null,
+  en_pregunta_hijo = false,
 }) {
   const [preguntaSeVe, setPreguntaSeVe] = useState(false);
   const [flechaSeccion, setFlechaPregunta] = useState(flechaVacia);
@@ -161,7 +162,7 @@ export default function PreguntaIndividual({
       confirmButtonText: "Continuar",
       icon: "success",
     });
-    setRerenderPorActualizacionDeDatos(true);
+    // setRerenderPorActualizacionDeDatos(true);
   };
 
   const handleConfirmarBorrarPregunta = (e, pregunta_id, pregunta_idTask) => {
@@ -356,6 +357,14 @@ export default function PreguntaIndividual({
       <div className={classNamesContainerDataPregunta}>
         <div className="contanier d-flex justify-content-center align-items-center w-100 mt-3">
           <div className="d-flex flex-column justify-content-end align-items-start w-75 pe-3">
+            <div className="d-flex w-100 justify-content-evenly align-items-center mb-2">
+              <h6 className="m-0">ID</h6>
+              <p className="m-0">
+                <b>
+                  <i>{pregunta._id}</i>
+                </b>
+              </p>
+            </div>
             <div className="form-floating mb-3 w-100">
               <input
                 type="text"
@@ -416,32 +425,36 @@ export default function PreguntaIndividual({
         </div>
         <div className="d-flex flex-column justify-content-center align-items-center">
           <h2></h2>
-          <ButtonToggleView
-            data_contenidos={[
-              {
-                _id: pregunta._id,
-                typeOfQuestion: pregunta.typeOfQuestion,
-                position: posicionPregunta,
-                completed: false,
-                idTask: pregunta.idTask,
-                idBody: pregunta.idBody,
-                question: nombrePregunta,
-                totalScore: puntuacionPregunta,
-                answeredScore: pregunta.answeredScore,
-                answers: pregunta.answers,
-                correctAnswer: pregunta.correctAnswer,
-                idFeedback: pregunta.idFeedback,
-                contents: pregunta.contents,
-                questions: pregunta.questions,
-                __v: 0,
-              },
-            ]}
-            componenteAMostrar={"render-pregunta"}
-            mensajeBtn={"Ver previsualización de la pregunta"}
-            mensajeVacio={"Error construyendo la previsualización"}
-            rerenderPorActualizacionDeDatos={rerenderPorActualizacionDeDatos}
-            setRerenderPorActualizacionDeDatos={setRerenderPorActualizacionDeDatos}
-          />
+          {en_pregunta_hijo ? (
+            <p>Para previzualizar la pregunta, búsquela en la sección de preguntas del curso</p>
+          ) : (
+            <ButtonToggleView
+              data_contenidos={[
+                {
+                  _id: pregunta._id,
+                  typeOfQuestion: pregunta.typeOfQuestion,
+                  position: posicionPregunta,
+                  completed: false,
+                  idTask: pregunta.idTask,
+                  idBody: pregunta.idBody,
+                  question: nombrePregunta,
+                  totalScore: puntuacionPregunta,
+                  answeredScore: pregunta.answeredScore,
+                  answers: pregunta.answers,
+                  correctAnswer: pregunta.correctAnswer,
+                  idFeedback: pregunta.idFeedback,
+                  contents: pregunta.contents,
+                  questions: pregunta.questions,
+                  __v: 0,
+                },
+              ]}
+              componenteAMostrar={"render-pregunta"}
+              mensajeBtn={"Ver previsualización de la pregunta"}
+              mensajeVacio={"Error construyendo la previsualización"}
+              rerenderPorActualizacionDeDatos={rerenderPorActualizacionDeDatos}
+              setRerenderPorActualizacionDeDatos={setRerenderPorActualizacionDeDatos}
+            />
+          )}
 
           {/* <RenderPreguntaIndividual pregunta={pregunta} /> */}
         </div>
