@@ -313,6 +313,54 @@ export default function RespuestaInteractivaSecuencial() {
     }
   }, [preguntasSeleccionadas]);
 
+  /**
+   * Función que pregunta si se está seguro que se desea eliminar el objeto de la pregunta hijo seleccionada junto con su pregunta correcta y pregunta incorrecta de la lista de preguntas hijo
+   * @param obj_pregunta_hijo type: Object : El objeto de la pregunta hijo a eliminar
+   */
+  const handleConfirmarEliminarPreguntaHijoDeListaPreguntaHijo = (obj_pregunta_hijo) => {
+    console.log(`preguntasHijoData: ${JSON.stringify(preguntasHijoData)}`);
+    Swal.fire({
+      titleText: `Seguro que desea eliminar la pregunta\n "${obj_pregunta_hijo.question}"\nde la lista de preguntas hijo?`,
+      text: `Nota: Las preguntas que se eliminen de la lista no se borran de la base de datos ni de otras actividades, solo de la lista de preguntas hijo que corresponde a la pregunta de tipo secuencial.`,
+      showDenyButton: true,
+      confirmButtonText: "Si, eliminar",
+      denyButtonText: "No, cancelar",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        handleEliminarPreguntaHijoDeListaPreguntaHijo(obj_pregunta_hijo);
+      }
+    });
+  };
+
+  /**
+   * Función que elimina el objeto de la pregunta hijo seleccionada junto con su pregunta correcta y pregunta incorrecta de la lista de preguntas hijo
+   * @param obj_pregunta_hijo type: Object : El objeto de la pregunta hijo a eliminar
+   */
+  const handleEliminarPreguntaHijoDeListaPreguntaHijo = (obj_pregunta_hijo) => {
+    // Obtenemos la posición del objeto a eliminar dentro de la lista de preguntas hijo
+    let posicion = -1;
+    for (let index = 0; index < listaPreguntasHijo.length; index++) {
+      const obj_pregunta_tmp = listaPreguntasHijo[index];
+      if (obj_pregunta_tmp.id_pregunta_hijo === obj_pregunta_hijo._id) {
+        posicion = index;
+        break;
+      }
+    }
+    console.log(posicion);
+
+    // Si se encontró el objeto pregunta a eliminar, actualizamos el estado de ListaPreguntasHijo y de preguntasHijoData
+    if (posicion !== -1) {
+      const nuevaListaPreguntasHijo = [...listaPreguntasHijo];
+      nuevaListaPreguntasHijo.splice(posicion, 1);
+      setListaPreguntasHijo(nuevaListaPreguntasHijo);
+      setPreguntasHijoData((prevState) => {
+        const obj_tmp_preguntasHijoData = { ...prevState };
+        delete obj_tmp_preguntasHijoData[obj_pregunta_hijo._id];
+        return obj_tmp_preguntasHijoData;
+      });
+    }
+  };
+
   return (
     <div className="d-flex flex-column justify-content-center align-items-center rounded-3 border border-secondary-subtle border-2 w-100">
       {/* Instrucciones */}
@@ -352,16 +400,36 @@ export default function RespuestaInteractivaSecuencial() {
                 <div key={`pregunta-hijo-${index}`} className="w-100 d-flex">
                   <div className="w-50">
                     {preguntaHijoCargada ? (
-                      <PreguntaIndividual
-                        pregunta={preguntaHijoCargada}
-                        flechaVacia={flechaVacia}
-                        flechaLlena={flechaLlena}
-                        cantidad_preguntas_por_actividad={"Pregunta-hijo"}
-                        arreglo_objetos_actividades_por_pregunta={"Pregunta-hijo"}
-                        rerenderPorActualizacionDeDatos={rerenderPorActualizacionDeDatos}
-                        setRerenderPorActualizacionDeDatos={setRerenderPorActualizacionDeDatos}
-                        en_pregunta_hijo={true}
-                      />
+                      <div className="w-100 d-flex justify-content-center align-items-center">
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            handleConfirmarEliminarPreguntaHijoDeListaPreguntaHijo(
+                              preguntaHijoCargada
+                            );
+                          }}
+                          className="btn btn-danger rounded-2 d-flex justify-content-center align-items-center px-2 py-5">
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="16"
+                            height="16"
+                            fill="currentColor"
+                            className="bi bi-x-lg"
+                            viewBox="0 0 16 16">
+                            <path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8z" />
+                          </svg>
+                        </button>
+                        <PreguntaIndividual
+                          pregunta={preguntaHijoCargada}
+                          flechaVacia={flechaVacia}
+                          flechaLlena={flechaLlena}
+                          cantidad_preguntas_por_actividad={"Pregunta-hijo"}
+                          arreglo_objetos_actividades_por_pregunta={"Pregunta-hijo"}
+                          rerenderPorActualizacionDeDatos={rerenderPorActualizacionDeDatos}
+                          setRerenderPorActualizacionDeDatos={setRerenderPorActualizacionDeDatos}
+                          en_pregunta_hijo={true}
+                        />
+                      </div>
                     ) : (
                       // Muestra un componente o texto de "Cargando..." mientras se espera que la pregunta se cargue
                       <span>Cargando...</span>
