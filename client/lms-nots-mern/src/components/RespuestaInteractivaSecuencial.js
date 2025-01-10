@@ -184,7 +184,12 @@ export default function RespuestaInteractivaSecuencial() {
     if (listaPreguntasHijo.length > 0) {
       cargarPreguntasHijo();
     }
-  }, [listaPreguntasHijo, preguntasHijoData]);
+  }, [listaPreguntasHijo]); //,preguntasHijoData
+
+  const handleAgregarPreguntaHijo = (nuevaPregunta) => {
+    setListaPreguntasHijo((prevLista) => [...prevLista, nuevaPregunta]);
+    console.log(JSON.stringify(listaPreguntasHijo));
+  };
 
   // Se ejecuta cada vez que registramos una pregunta hijo nueva
   useEffect(() => {
@@ -223,8 +228,9 @@ export default function RespuestaInteractivaSecuencial() {
 
         if (!existePregunta) {
           // Solo actualiza el estado si la pregunta no está en la lista
-          setListaPreguntasHijo((prevLista) => [...prevLista, preguntaRegistrada_obj]);
-          console.log(JSON.stringify(listaPreguntasHijo));
+          // setListaPreguntasHijo((prevLista) => [...prevLista, preguntaRegistrada_obj]);
+          // console.log(JSON.stringify(listaPreguntasHijo));
+          handleAgregarPreguntaHijo(preguntaRegistrada_obj);
         }
         // if (!listaPreguntasHijo.find(({ _id }) => _id === preguntaRegistrada._id)) {
         //   setListaPreguntasHijo([...listaPreguntasHijo, preguntaRegistrada_obj]);
@@ -346,7 +352,6 @@ export default function RespuestaInteractivaSecuencial() {
         break;
       }
     }
-    console.log(posicion);
 
     // Si se encontró el objeto pregunta a eliminar, actualizamos el estado de ListaPreguntasHijo y de preguntasHijoData
     if (posicion !== -1) {
@@ -359,6 +364,63 @@ export default function RespuestaInteractivaSecuencial() {
         return obj_tmp_preguntasHijoData;
       });
     }
+  };
+
+  /**
+   * Función que pregunta si se está seguro que se desea cambiar la posición del objeto de la pregunta hijo seleccionada junto con su pregunta correcta y pregunta incorrecta de la lista de preguntas hijo
+   * @param obj_pregunta_hijo type: Object : El objeto de la pregunta hijo a cambiar de posición
+   * @param posicion_actual type: Number : La posición actual del objeto de la pregunta hijo dentro de la lista de preguntas hijo
+   * @param posicion_nueva type: Number : La posición a la que se cambiará el objeto de la pregunta hijo dentro de la lista de preguntas hijo
+   */
+  const handleConfirmarCambioDePosicionPreguntaHijoDeListaPreguntaHijo = (
+    obj_pregunta_hijo,
+    posicion_actual,
+    posicion_nueva
+  ) => {
+    if (
+      posicion_actual != posicion_nueva &&
+      posicion_nueva >= 0 &&
+      posicion_nueva < listaPreguntasHijo.length
+    ) {
+      console.log(`posicion_actual: ${JSON.stringify(posicion_actual)}`);
+      console.log(`posicion_nueva: ${JSON.stringify(posicion_nueva)}`);
+      Swal.fire({
+        titleText: `Seguro que desea cambiar de posición la pregunta\n "${obj_pregunta_hijo.question}"\nde la lista de preguntas hijo del lugar ${posicion_actual} al lugar ${posicion_nueva}?`,
+        text: `Nota: La pregunta que cambie de posición recorrerá las demás preguntas en la lista de preguntas hijo hacia adelante una posición.`,
+        showDenyButton: true,
+        confirmButtonText: "Si, cambiar de posición",
+        denyButtonText: "No, cancelar",
+      }).then((result) => {
+        if (result.isConfirmed) {
+          handleCambioDePosicionPreguntaHijoDeListaPreguntaHijo(posicion_actual, posicion_nueva);
+        }
+      });
+    } else {
+      Swal.fire({
+        title: "Error al cambiar la posición de la pregunta",
+        text: `La posición nueva debe ser diferente a la posición actual y estar dentro del rango de la lista de preguntas hijo.\n
+        (0 - ${listaPreguntasHijo.length - 1})`,
+        icon: "error",
+      });
+    }
+  };
+
+  /**
+   * Función que cambia la posición del objeto de la pregunta hijo seleccionada junto con su pregunta correcta y pregunta incorrecta de la lista de preguntas hijo
+   * @param posicion_actual type: Number : La posición actual del objeto de la pregunta hijo dentro de la lista de preguntas hijo
+   * @param posicion_nueva type: Number : La posición a la que se cambiará el objeto de la pregunta hijo dentro de la lista de preguntas hijo
+   */
+  const handleCambioDePosicionPreguntaHijoDeListaPreguntaHijo = (
+    posicion_actual,
+    posicion_nueva
+  ) => {
+    // Cambiamos la posición de la pregunta hijo en la lista de preguntas hijo en la nueva posición reccorriendo los items hacia adelante
+    const updatedList = [...listaPreguntasHijo];
+    const [movedItem] = updatedList.splice(posicion_actual, 1);
+    console.log(`updatedList: ${JSON.stringify(updatedList)}`);
+    console.log(`movedItem: ${JSON.stringify(movedItem)}`);
+    updatedList.splice(posicion_nueva, 0, movedItem);
+    setListaPreguntasHijo(updatedList);
   };
 
   return (
@@ -400,35 +462,87 @@ export default function RespuestaInteractivaSecuencial() {
                 <div key={`pregunta-hijo-${index}`} className="w-100 d-flex">
                   <div className="w-50">
                     {preguntaHijoCargada ? (
-                      <div className="w-100 d-flex justify-content-center align-items-center">
-                        <button
-                          onClick={(e) => {
-                            e.preventDefault();
-                            handleConfirmarEliminarPreguntaHijoDeListaPreguntaHijo(
-                              preguntaHijoCargada
-                            );
-                          }}
-                          className="btn btn-danger rounded-2 d-flex justify-content-center align-items-center px-2 py-5">
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="16"
-                            height="16"
-                            fill="currentColor"
-                            className="bi bi-x-lg"
-                            viewBox="0 0 16 16">
-                            <path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8z" />
-                          </svg>
-                        </button>
-                        <PreguntaIndividual
-                          pregunta={preguntaHijoCargada}
-                          flechaVacia={flechaVacia}
-                          flechaLlena={flechaLlena}
-                          cantidad_preguntas_por_actividad={"Pregunta-hijo"}
-                          arreglo_objetos_actividades_por_pregunta={"Pregunta-hijo"}
-                          rerenderPorActualizacionDeDatos={rerenderPorActualizacionDeDatos}
-                          setRerenderPorActualizacionDeDatos={setRerenderPorActualizacionDeDatos}
-                          en_pregunta_hijo={true}
-                        />
+                      <div className="w-100 d-flex flex-column justify-content-center align-items-center">
+                        <div className="w-100 d-flex justify-content-start align-items-center ms-3">
+                          <p className="p-0 m-0 me-1">Posición:</p>
+                          <input
+                            className="me-1"
+                            type="number"
+                            value={index}
+                            min={0}
+                            max={listaPreguntasHijo.length - 1}
+                            onChange={(e) => {
+                              e.preventDefault();
+                              const newPosition = parseInt(e.target.value, 10);
+                              handleConfirmarCambioDePosicionPreguntaHijoDeListaPreguntaHijo(
+                                preguntaHijoCargada,
+                                index,
+                                newPosition
+                              );
+                            }}
+                            disabled={true}
+                            // Habilitar cuando se haya implementado la funcionalidad de cambiar de posición
+                            // Actualmente no se tiene un handler para registrar una pregunta en la Lista de preguntas hijo, por lo que el estado no se actualiza instantaneamente y por ende cuando se agruega una pregunta a la lista de preguntas hijo no se agruega realmente hasta la proxima actualización del estado.
+                            // Para corregirlo realizar lo siguiente:
+                            // 1. Eliminar la lógica de preguntaRegistrada en useEffect y usar un handler para agregar la pregunta a la lista de preguntas hijo
+                            // 2. Crear un handler para cambiar la posición de la pregunta hijo en la lista de preguntas hijo. Puede ser de la siguiente forma:
+                            // const handleAgregarPreguntaHijo = (nuevaPregunta) => {
+                            //   setListaPreguntasHijo((prevLista) => [...prevLista, nuevaPregunta]);
+                            // };
+                            // Llamar este handler en el boton de registrar pregunta hijo (hasta el final de este componente)
+                          />
+                          {/* <button
+                            onClick={(e) => {
+                              e.preventDefault();
+                              handleConfirmarCambioDePosicionPreguntaHijoDeListaPreguntaHijo(
+                                preguntaHijoCargada,
+                                index,
+                                posicion
+                              );
+                            }}
+                            className="btn btn-warning rounded-2 d-flex justify-content-center align-items-center">
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="16"
+                              height="16"
+                              fill="currentColor"
+                              class="bi bi-check2"
+                              viewBox="0 0 16 16">
+                              <path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0" />
+                            </svg>
+                          </button> */}
+                        </div>
+                        <div className="w-100 d-flex justify-content-center align-items-center">
+                          <button
+                            onClick={(e) => {
+                              e.preventDefault();
+                              handleConfirmarEliminarPreguntaHijoDeListaPreguntaHijo(
+                                preguntaHijoCargada
+                              );
+                            }}
+                            className="btn btn-danger rounded-2 d-flex justify-content-center align-items-center px-2 py-5">
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="16"
+                              height="16"
+                              fill="currentColor"
+                              className="bi bi-x-lg"
+                              viewBox="0 0 16 16">
+                              <path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8z" />
+                            </svg>
+                          </button>
+
+                          <PreguntaIndividual
+                            pregunta={preguntaHijoCargada}
+                            flechaVacia={flechaVacia}
+                            flechaLlena={flechaLlena}
+                            cantidad_preguntas_por_actividad={"Pregunta-hijo"}
+                            arreglo_objetos_actividades_por_pregunta={"Pregunta-hijo"}
+                            rerenderPorActualizacionDeDatos={rerenderPorActualizacionDeDatos}
+                            setRerenderPorActualizacionDeDatos={setRerenderPorActualizacionDeDatos}
+                            en_pregunta_hijo={true}
+                          />
+                        </div>
                       </div>
                     ) : (
                       // Muestra un componente o texto de "Cargando..." mientras se espera que la pregunta se cargue
@@ -563,7 +677,13 @@ export default function RespuestaInteractivaSecuencial() {
             </div>
           </div>
         </div>
-        <button type="button" onClick={aniadirPreguntaHijo} className="btn btn-success">
+        <button
+          type="button"
+          onClick={(e) => {
+            e.preventDefault();
+            aniadirPreguntaHijo();
+          }}
+          className="btn btn-success">
           Añadir pregunta hijo
         </button>
       </div>
