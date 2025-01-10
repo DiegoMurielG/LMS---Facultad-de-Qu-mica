@@ -463,7 +463,7 @@ export default function RespuestaInteractivaSecuencial() {
                   <div className="w-50">
                     {preguntaHijoCargada ? (
                       <div className="w-100 d-flex flex-column justify-content-center align-items-center">
-                        <div className="w-100 d-flex justify-content-start align-items-center ms-3">
+                        <div className="w-100 d-flex justify-content-start align-items-center ps-3">
                           <p className="p-0 m-0 me-1">Posición:</p>
                           <input
                             className="me-1"
@@ -480,16 +480,7 @@ export default function RespuestaInteractivaSecuencial() {
                                 newPosition
                               );
                             }}
-                            disabled={true}
-                            // Habilitar cuando se haya implementado la funcionalidad de cambiar de posición
-                            // Actualmente no se tiene un handler para registrar una pregunta en la Lista de preguntas hijo, por lo que el estado no se actualiza instantaneamente y por ende cuando se agruega una pregunta a la lista de preguntas hijo no se agruega realmente hasta la proxima actualización del estado.
-                            // Para corregirlo realizar lo siguiente:
-                            // 1. Eliminar la lógica de preguntaRegistrada en useEffect y usar un handler para agregar la pregunta a la lista de preguntas hijo
-                            // 2. Crear un handler para cambiar la posición de la pregunta hijo en la lista de preguntas hijo. Puede ser de la siguiente forma:
-                            // const handleAgregarPreguntaHijo = (nuevaPregunta) => {
-                            //   setListaPreguntasHijo((prevLista) => [...prevLista, nuevaPregunta]);
-                            // };
-                            // Llamar este handler en el boton de registrar pregunta hijo (hasta el final de este componente)
+                            disabled={false}
                           />
                           {/* <button
                             onClick={(e) => {
@@ -560,15 +551,102 @@ export default function RespuestaInteractivaSecuencial() {
                             flechaLlena={flechaLlena}
                             cantidad_preguntas_por_actividad={"Pregunta-correcta-de-pregunta-hijo"}
                             arreglo_objetos_actividades_por_pregunta={
-                              "Pregunta-incorrecta-de-pregunta-hijo"
+                              "Pregunta-correcta-de-pregunta-hijo"
                             }
                             rerenderPorActualizacionDeDatos={rerenderPorActualizacionDeDatos}
                             setRerenderPorActualizacionDeDatos={setRerenderPorActualizacionDeDatos}
                             en_pregunta_hijo={true}
                           />
                         ) : (
+                          // Hacer esto un componenete independiente para reutilizarlo en estas secciones y tal vez hasta al momento de agregar una pregunta de cualquier tipo
+                          <div>
+                            <div className={registrandoPregunta ? "d-block" : " d-none"}>
+                              <div className="d-flex flex-column justify-content-center align-items-center">
+                                <select
+                                  defaultValue={""}
+                                  onChange={(e) => {
+                                    elegirAccionParaCrearPreguntaHijo(e);
+                                  }}
+                                  className={registrandoPregunta ? "d-block mb-3" : "d-none"}>
+                                  <option value={""} disabled={true}>
+                                    <p>Eliga una acción a continuación</p>
+                                  </option>
+                                  <option value={"buscar-pregunta-existente"}>
+                                    <p className="m-0">Buscar pregunta existente</p>
+                                  </option>
+                                  <option value={"crear-pregunta-nueva"}>
+                                    <p className="m-0">Crear pregunta nueva</p>
+                                  </option>
+                                </select>
+                                <div
+                                  className={
+                                    registrandoPregunta &&
+                                    origenDeLaPreguntaHijo == "buscar-pregunta-existente"
+                                      ? "d-block"
+                                      : "d-none"
+                                  }>
+                                  <InputBuscador
+                                    name="preguntasBuscadas"
+                                    id="floatingInput-preguntas"
+                                    placeholder="Busque preguntas por nombre"
+                                    label="Preguntas"
+                                    onChange={(e) => {
+                                      // console.log(e);
+                                      handleBuscarPreguntas(e);
+                                    }}
+                                    value={preguntasBuscadas}
+                                    // searching={"actividades"}
+                                    elementosDisponibles={preguntasDisponibles}
+                                    elementosSeleccionados={preguntasSeleccionadas}
+                                    setElementosSeleccionados={setPreguntasSeleccionadas}
+                                    aQuienAsignamos="actividad"
+                                    queBuscamos="preguntas"
+                                    buscarSoloUnaPregunta={true}
+                                    renderizarPreguntaBuscada={true}
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      handleAgruegarPreguntaBuscada(e, "pregunta-hijo");
+                                    }}
+                                    className={
+                                      preguntasSeleccionadas.length > 0
+                                        ? "enabled btn btn-primary my-3 w-100 btn-lg"
+                                        : "disabled btn btn-primary my-3 w-100 btn-lg"
+                                    }>
+                                    Añadir pregunta buscada como pregunta hijo
+                                  </button>
+                                </div>
+                                <div
+                                  className={
+                                    registrandoPregunta &&
+                                    origenDeLaPreguntaHijo == "crear-pregunta-nueva"
+                                      ? "d-block"
+                                      : "d-none"
+                                  }>
+                                  <RegistrarPregunta
+                                    handleSubmitExterno={"registrando-pregunta-hijo"}
+                                    adding_childern_question={true}
+                                    question={preguntaRegistrada}
+                                    setQuestion={setPreguntaRegistrada}
+                                    registrandoPregunta={registrandoPregunta}
+                                    setRegistrandoPregunta={setRegistrandoPregunta}
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                aniadirPreguntaHijo();
+                              }}
+                              className="btn btn-success">
+                              Añadir pregunta hijo
+                            </button>
+                          </div>
                           // Muestra un componente o texto de "Cargando..." mientras se espera que la pregunta se cargue
-                          <span>Cargando...</span>
+                          // <span>Cargando...</span>
                         )}
                       </div>
                     </div>

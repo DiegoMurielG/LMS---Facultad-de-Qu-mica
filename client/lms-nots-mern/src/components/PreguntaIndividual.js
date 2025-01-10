@@ -343,7 +343,7 @@ export default function PreguntaIndividual({
   // }, [seccion.id_tasks]); //, preguntaSeVe
 
   return (
-    <div className="contanier d-flex flex-column justify-content-center align-items-center rounded-3 mb-3 bg-body-tertiary overflow-hidden">
+    <div className=" w-100 contanier d-flex flex-column justify-content-center align-items-center rounded-3 mb-3 bg-body-tertiary overflow-hidden">
       <div className="d-flex justify-content-between align-items-center bg-body-tertiary w-100">
         {/* <span className="me-1">Sección:</span> */}
         <h2 className="my-0 w-75 my-3">
