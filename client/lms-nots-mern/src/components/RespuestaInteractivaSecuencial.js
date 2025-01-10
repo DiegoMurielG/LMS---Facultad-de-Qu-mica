@@ -5,6 +5,7 @@ import axios from "axios";
 import RenderPreguntaIndividual from "./RenderPreguntaIndividual";
 import PreguntaIndividual from "./PreguntaIndividual";
 import InputBuscador from "./InputBuscador";
+import RegistrarOBuscarPregunta from "./RegistrarOBuscarPregunta";
 
 export default function RespuestaInteractivaSecuencial() {
   // Para la vizualización de la pregunta
@@ -35,7 +36,7 @@ export default function RespuestaInteractivaSecuencial() {
   // Para los <ButtonToggleView />
   const [rerenderPorActualizacionDeDatos, setRerenderPorActualizacionDeDatos] = useState(false);
 
-  // Input Buscador
+  // // Input Buscador
   const [preguntasBuscadas, setPreguntasBuscadas] = useState("");
   const [preguntasDisponibles, setPreguntasDisponibles] = useState([]);
   const [preguntasSeleccionadas, setPreguntasSeleccionadas] = useState([]);
@@ -110,12 +111,14 @@ export default function RespuestaInteractivaSecuencial() {
       }
       if (tipoDePreguntaAAniadir == "pregunta-hijo") {
         console.log(JSON.stringify(pregunta));
-        setPreguntaRegistrada(pregunta);
+        setPreguntaRegistrada({ "pregunta-hijo": pregunta });
       } else if (tipoDePreguntaAAniadir == "pregunta-correcta") {
         // Agrega setPreguntaCorrecta
+        setPreguntaRegistrada({ "pregunta-correcta": pregunta });
       } else {
         // tipoDePreguntaAAniadir == "pregunta-incorrecta"
         // Agrega setPreguntaIncorrecta
+        setPreguntaRegistrada({ "pregunta-incorrecta": pregunta });
       }
     }
   };
@@ -196,7 +199,13 @@ export default function RespuestaInteractivaSecuencial() {
     console.log(JSON.stringify(preguntaRegistrada));
     // Guardamos la pregunta registrada a la lista de preguntas hijo de la pregunta Interactiva Secuencial
     // Nos aseguramos de que la pregunta no sea un objeto vacío revisando que exista el atributo typeOfQuestion
-    if (preguntaRegistrada.typeOfQuestion) {
+    if (
+      Object.keys(preguntaRegistrada).length > 0 &&
+      preguntaRegistrada.constructor === Object //&&
+      // (preguntaRegistrada["pregunta-hijo"].typeOfQuestion ||
+      //   preguntaRegistrada["pregunta-correcta"].typeOfQuestion ||
+      //   preguntaRegistrada["pregunta-incorrecta"].typeOfQuestion)
+    ) {
       // Actualizar el objeto con la pregunta registrada y las preguntas correcta e incorrecta si se crean (pregunta hijo) con la siguiente estructura:
       /*
       {
@@ -212,18 +221,48 @@ export default function RespuestaInteractivaSecuencial() {
       // Cambiar la forma ne la que se renderiza condicionalmente la lista de "listaPreguntasHijo", ya que ahora esta tendrá los objetos de preguntas hijo que contienen hasta 3 preguntas diferentes
       // Después añadir la opción de agregar una pregunta de tipo pregunta correcta e igual para la pregunta de tipo incorrecta (La misma funcionalidad de registrar una pregunta nueva que no pertenezca a ninguna activdad y, que cuando se registre se muestre en su lugar el componente de <PreguntaIndividual /> para poder tener un "CRUD" de preguntas correctas e incorrectas también)
       // Añadir la búsqueda de preguntas en la DB para añadirlas como pregunta, pregunta correcta o pregunta incorrecta para no solo tener que darlas de alta ahí mismo
+
+      // Generamos el objeto de preguntaRegistrada_obj según la pregunta registrada (preguntaRegistrada activa este useEffect)
       const preguntaRegistrada_obj = {
-        id_pregunta_hijo: preguntaRegistrada._id,
+        id_pregunta_hijo: "",
         id_pregunta_correcta: "",
         id_pregunta_incorrecta: "",
       };
+      if (preguntaRegistrada.hasOwnProperty("pregunta-hijo")) {
+        preguntaRegistrada_obj.id_pregunta_hijo = preguntaRegistrada["pregunta-hijo"]._id;
+      } else if (preguntaRegistrada.hasOwnProperty("pregunta-correcta")) {
+        // Buscamos en la lista de preguntas hijo la pregunta a la que pertenece la pregunta correcta y le asignamos el ID de la pregunta correcta
+        const preguntaHijoIndex = listaPreguntasHijo.findIndex(
+          (pregunta) =>
+            pregunta.id_pregunta_hijo === preguntaRegistrada.idPreguntaHijoALaQuePertenece._id
+        );
+        console.log(`preguntaHijoIndex: ${preguntaHijoIndex}`);
+        if (preguntaHijoIndex !== -1) {
+          const updatedListaPreguntasHijo = [...listaPreguntasHijo];
+          updatedListaPreguntasHijo[preguntaHijoIndex].id_pregunta_correcta =
+            preguntaRegistrada["pregunta-correcta"]._id;
+          setListaPreguntasHijo(updatedListaPreguntasHijo);
+        }
+      } else {
+        // Buscamos en la lista de preguntas hijo la pregunta a la que pertenece la pregunta incorrecta y le asignamos el ID de la pregunta incorrecta
+        const preguntaHijoIndex = listaPreguntasHijo.findIndex(
+          (pregunta) =>
+            pregunta.id_pregunta_hijo === preguntaRegistrada.idPreguntaHijoALaQuePertenece._id
+        );
+        if (preguntaHijoIndex !== -1) {
+          const updatedListaPreguntasHijo = [...listaPreguntasHijo];
+          updatedListaPreguntasHijo[preguntaHijoIndex].id_pregunta_incorrecta =
+            preguntaRegistrada["pregunta-incorrecta"]._id;
+          setListaPreguntasHijo(updatedListaPreguntasHijo);
+        }
+      }
       // Evitamos guardar preguntas con un _id vacío
       if (preguntaRegistrada._id != "") {
         // Evitamos duplicados
 
-        // Verifica si ya existe la pregunta en `listaPreguntasHijo`
+        // Verifica si ya existe la pregunta hijo en `listaPreguntasHijo`
         const existePregunta = listaPreguntasHijo.some(
-          (pregunta) => pregunta.id_pregunta_hijo === preguntaRegistrada._id
+          (pregunta) => pregunta.id_pregunta_hijo === preguntaRegistrada_obj.id_pregunta_hijo
         );
 
         if (!existePregunta) {
@@ -558,93 +597,14 @@ export default function RespuestaInteractivaSecuencial() {
                             en_pregunta_hijo={true}
                           />
                         ) : (
-                          // Hacer esto un componenete independiente para reutilizarlo en estas secciones y tal vez hasta al momento de agregar una pregunta de cualquier tipo
-                          <div>
-                            <div className={registrandoPregunta ? "d-block" : " d-none"}>
-                              <div className="d-flex flex-column justify-content-center align-items-center">
-                                <select
-                                  defaultValue={""}
-                                  onChange={(e) => {
-                                    elegirAccionParaCrearPreguntaHijo(e);
-                                  }}
-                                  className={registrandoPregunta ? "d-block mb-3" : "d-none"}>
-                                  <option value={""} disabled={true}>
-                                    <p>Eliga una acción a continuación</p>
-                                  </option>
-                                  <option value={"buscar-pregunta-existente"}>
-                                    <p className="m-0">Buscar pregunta existente</p>
-                                  </option>
-                                  <option value={"crear-pregunta-nueva"}>
-                                    <p className="m-0">Crear pregunta nueva</p>
-                                  </option>
-                                </select>
-                                <div
-                                  className={
-                                    registrandoPregunta &&
-                                    origenDeLaPreguntaHijo == "buscar-pregunta-existente"
-                                      ? "d-block"
-                                      : "d-none"
-                                  }>
-                                  <InputBuscador
-                                    name="preguntasBuscadas"
-                                    id="floatingInput-preguntas"
-                                    placeholder="Busque preguntas por nombre"
-                                    label="Preguntas"
-                                    onChange={(e) => {
-                                      // console.log(e);
-                                      handleBuscarPreguntas(e);
-                                    }}
-                                    value={preguntasBuscadas}
-                                    // searching={"actividades"}
-                                    elementosDisponibles={preguntasDisponibles}
-                                    elementosSeleccionados={preguntasSeleccionadas}
-                                    setElementosSeleccionados={setPreguntasSeleccionadas}
-                                    aQuienAsignamos="actividad"
-                                    queBuscamos="preguntas"
-                                    buscarSoloUnaPregunta={true}
-                                    renderizarPreguntaBuscada={true}
-                                  />
-                                  <button
-                                    type="button"
-                                    onClick={(e) => {
-                                      handleAgruegarPreguntaBuscada(e, "pregunta-hijo");
-                                    }}
-                                    className={
-                                      preguntasSeleccionadas.length > 0
-                                        ? "enabled btn btn-primary my-3 w-100 btn-lg"
-                                        : "disabled btn btn-primary my-3 w-100 btn-lg"
-                                    }>
-                                    Añadir pregunta buscada como pregunta hijo
-                                  </button>
-                                </div>
-                                <div
-                                  className={
-                                    registrandoPregunta &&
-                                    origenDeLaPreguntaHijo == "crear-pregunta-nueva"
-                                      ? "d-block"
-                                      : "d-none"
-                                  }>
-                                  <RegistrarPregunta
-                                    handleSubmitExterno={"registrando-pregunta-hijo"}
-                                    adding_childern_question={true}
-                                    question={preguntaRegistrada}
-                                    setQuestion={setPreguntaRegistrada}
-                                    registrandoPregunta={registrandoPregunta}
-                                    setRegistrandoPregunta={setRegistrandoPregunta}
-                                  />
-                                </div>
-                              </div>
-                            </div>
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.preventDefault();
-                                aniadirPreguntaHijo();
-                              }}
-                              className="btn btn-success">
-                              Añadir pregunta hijo
-                            </button>
-                          </div>
+                          <RegistrarOBuscarPregunta
+                            preguntaRegistrada={preguntaRegistrada}
+                            setPreguntaRegistrada={setPreguntaRegistrada}
+                            tipoDePreguntaAAniadir={"pregunta-correcta"}
+                            registrandoPregunta={registrandoPregunta}
+                            setRegistrandoPregunta={setRegistrandoPregunta}
+                            idPreguntaHijoALaQuePertenece={preguntaHijoCargada}
+                          />
                           // Muestra un componente o texto de "Cargando..." mientras se espera que la pregunta se cargue
                           // <span>Cargando...</span>
                         )}
@@ -682,7 +642,14 @@ export default function RespuestaInteractivaSecuencial() {
             <></>
           )}
         </div>
-        <div className={registrandoPregunta ? "d-block" : " d-none"}>
+        <RegistrarOBuscarPregunta
+          preguntaRegistrada={preguntaRegistrada}
+          setPreguntaRegistrada={setPreguntaRegistrada}
+          tipoDePreguntaAAniadir={"pregunta-hijo"}
+          registrandoPregunta={registrandoPregunta}
+          setRegistrandoPregunta={setRegistrandoPregunta}
+        />
+        {/* <div className={registrandoPregunta ? "d-block" : " d-none"}>
           <div className="d-flex flex-column justify-content-center align-items-center">
             <select
               defaultValue={""}
@@ -763,7 +730,7 @@ export default function RespuestaInteractivaSecuencial() {
           }}
           className="btn btn-success">
           Añadir pregunta hijo
-        </button>
+        </button> */}
       </div>
     </div>
   );

@@ -459,14 +459,23 @@ export default function PreguntaIndividual({
           {/* <RenderPreguntaIndividual pregunta={pregunta} /> */}
         </div>
         {/* Actividades */}
+        {console.log(
+          `arreglo_objetos_actividades_por_pregunta:${arreglo_objetos_actividades_por_pregunta}`
+        )}
         <div
           className={
-            arreglo_objetos_actividades_por_pregunta === "Pregunta-hijo" ? "d-none" : "d-block"
+            arreglo_objetos_actividades_por_pregunta === "Pregunta-hijo" ||
+            arreglo_objetos_actividades_por_pregunta === "Pregunta-correcta-de-pregunta-hijo" ||
+            arreglo_objetos_actividades_por_pregunta === "Pregunta-incorrecta-de-pregunta-hijo"
+              ? "d-none"
+              : "d-block"
           }>
           <h2 className="my-3 mt-5">Actividades</h2>
           <div className="d-flex flex-column justify-content-center align-items-center">
             {arreglo_objetos_actividades_por_pregunta.length > 0 &&
-            arreglo_objetos_actividades_por_pregunta != "Pregunta-hijo" ? (
+            arreglo_objetos_actividades_por_pregunta !== "Pregunta-hijo" &&
+            arreglo_objetos_actividades_por_pregunta !== "Pregunta-correcta-de-pregunta-hijo" &&
+            arreglo_objetos_actividades_por_pregunta !== "Pregunta-incorrecta-de-pregunta-hijo" ? (
               arreglo_objetos_actividades_por_pregunta.map((datos_actividad_individual, index) => {
                 if (datos_actividad_individual.questions.includes(pregunta._id.toString())) {
                   return (
