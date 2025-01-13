@@ -7,7 +7,10 @@ import PreguntaIndividual from "./PreguntaIndividual";
 import InputBuscador from "./InputBuscador";
 import RegistrarOBuscarPregunta from "./RegistrarOBuscarPregunta";
 
-export default function RespuestaInteractivaSecuencial() {
+export default function RespuestaInteractivaSecuencial({
+  listaPreguntasHijo, // Lista de preguntas hijo de la pregunta Interactiva Secuencial, este prop se utiliza para pasar el estado de <RespuestaInteractivaSecuencial /> hacia <RegistrarPregunta /> y poder guardar las preguntas en la DB
+  setListaPreguntasHijo, // Función para actualizar el estado de listaPreguntasHijo
+}) {
   // Para la vizualización de la pregunta
   const flechaVacia = (
     <svg
@@ -42,7 +45,7 @@ export default function RespuestaInteractivaSecuencial() {
   const [preguntasSeleccionadas, setPreguntasSeleccionadas] = useState([]);
 
   // listaPreguntasHijo == questions en Question
-  const [listaPreguntasHijo, setListaPreguntasHijo] = useState([]);
+  // const [listaPreguntasHijo, setListaPreguntasHijo] = useState([]);
   const [preguntaRegistrada, setPreguntaRegistrada] = useState({});
   const [registrandoPregunta, setRegistrandoPregunta] = useState(false);
   // let registrandoPregunta = false;
@@ -230,6 +233,26 @@ export default function RespuestaInteractivaSecuencial() {
       };
       if (preguntaRegistrada.hasOwnProperty("pregunta-hijo")) {
         preguntaRegistrada_obj.id_pregunta_hijo = preguntaRegistrada["pregunta-hijo"]._id;
+
+        // Evitamos guardar preguntas con un _id vacío
+        if (preguntaRegistrada._id != "") {
+          // Evitamos duplicados
+
+          // Verifica si ya existe la pregunta hijo en `listaPreguntasHijo`
+          const existePregunta = listaPreguntasHijo.some(
+            (pregunta) => pregunta.id_pregunta_hijo === preguntaRegistrada_obj.id_pregunta_hijo
+          );
+
+          if (!existePregunta) {
+            // Solo actualiza el estado si la pregunta no está en la lista
+            // setListaPreguntasHijo((prevLista) => [...prevLista, preguntaRegistrada_obj]);
+            // console.log(JSON.stringify(listaPreguntasHijo));
+            handleAgregarPreguntaHijo(preguntaRegistrada_obj);
+          }
+          // if (!listaPreguntasHijo.find(({ _id }) => _id === preguntaRegistrada._id)) {
+          //   setListaPreguntasHijo([...listaPreguntasHijo, preguntaRegistrada_obj]);
+          // }
+        }
       } else if (preguntaRegistrada.hasOwnProperty("pregunta-correcta")) {
         // Buscamos en la lista de preguntas hijo la pregunta a la que pertenece la pregunta correcta y le asignamos el ID de la pregunta correcta
         const preguntaHijoIndex = listaPreguntasHijo.findIndex(
@@ -255,25 +278,6 @@ export default function RespuestaInteractivaSecuencial() {
             preguntaRegistrada["pregunta-incorrecta"]._id;
           setListaPreguntasHijo(updatedListaPreguntasHijo);
         }
-      }
-      // Evitamos guardar preguntas con un _id vacío
-      if (preguntaRegistrada._id != "") {
-        // Evitamos duplicados
-
-        // Verifica si ya existe la pregunta hijo en `listaPreguntasHijo`
-        const existePregunta = listaPreguntasHijo.some(
-          (pregunta) => pregunta.id_pregunta_hijo === preguntaRegistrada_obj.id_pregunta_hijo
-        );
-
-        if (!existePregunta) {
-          // Solo actualiza el estado si la pregunta no está en la lista
-          // setListaPreguntasHijo((prevLista) => [...prevLista, preguntaRegistrada_obj]);
-          // console.log(JSON.stringify(listaPreguntasHijo));
-          handleAgregarPreguntaHijo(preguntaRegistrada_obj);
-        }
-        // if (!listaPreguntasHijo.find(({ _id }) => _id === preguntaRegistrada._id)) {
-        //   setListaPreguntasHijo([...listaPreguntasHijo, preguntaRegistrada_obj]);
-        // }
       }
     }
   }, [preguntaRegistrada]);
@@ -361,8 +365,12 @@ export default function RespuestaInteractivaSecuencial() {
   /**
    * Función que pregunta si se está seguro que se desea eliminar el objeto de la pregunta hijo seleccionada junto con su pregunta correcta y pregunta incorrecta de la lista de preguntas hijo
    * @param obj_pregunta_hijo type: Object : El objeto de la pregunta hijo a eliminar
+   * @param tipo_pregunta_a_borrar type: String : El tipo de pregunta a borrar, puede ser "pregunta-hijo", "pregunta-correcta" o "pregunta-incorrecta"
    */
-  const handleConfirmarEliminarPreguntaHijoDeListaPreguntaHijo = (obj_pregunta_hijo) => {
+  const handleConfirmarEliminarPreguntaDeListaPreguntaHijo = (
+    obj_pregunta_hijo,
+    tipo_pregunta_a_borrar = "pregunta-hijo"
+  ) => {
     console.log(`preguntasHijoData: ${JSON.stringify(preguntasHijoData)}`);
     Swal.fire({
       titleText: `Seguro que desea eliminar la pregunta\n "${obj_pregunta_hijo.question}"\nde la lista de preguntas hijo?`,
@@ -372,7 +380,7 @@ export default function RespuestaInteractivaSecuencial() {
       denyButtonText: "No, cancelar",
     }).then((result) => {
       if (result.isConfirmed) {
-        handleEliminarPreguntaHijoDeListaPreguntaHijo(obj_pregunta_hijo);
+        handleEliminarPreguntaDeListaPreguntaHijo(obj_pregunta_hijo, tipo_pregunta_a_borrar);
       }
     });
   };
@@ -380,8 +388,12 @@ export default function RespuestaInteractivaSecuencial() {
   /**
    * Función que elimina el objeto de la pregunta hijo seleccionada junto con su pregunta correcta y pregunta incorrecta de la lista de preguntas hijo
    * @param obj_pregunta_hijo type: Object : El objeto de la pregunta hijo a eliminar
+   * @param tipo_pregunta_a_borrar type: String : El tipo de pregunta a borrar, puede ser "pregunta-hijo", "pregunta-correcta" o "pregunta-incorrecta"
    */
-  const handleEliminarPreguntaHijoDeListaPreguntaHijo = (obj_pregunta_hijo) => {
+  const handleEliminarPreguntaDeListaPreguntaHijo = (
+    obj_pregunta_hijo,
+    tipo_pregunta_a_borrar = "pregunta-hijo"
+  ) => {
     // Obtenemos la posición del objeto a eliminar dentro de la lista de preguntas hijo
     let posicion = -1;
     for (let index = 0; index < listaPreguntasHijo.length; index++) {
@@ -394,14 +406,37 @@ export default function RespuestaInteractivaSecuencial() {
 
     // Si se encontró el objeto pregunta a eliminar, actualizamos el estado de ListaPreguntasHijo y de preguntasHijoData
     if (posicion !== -1) {
-      const nuevaListaPreguntasHijo = [...listaPreguntasHijo];
-      nuevaListaPreguntasHijo.splice(posicion, 1);
-      setListaPreguntasHijo(nuevaListaPreguntasHijo);
-      setPreguntasHijoData((prevState) => {
-        const obj_tmp_preguntasHijoData = { ...prevState };
-        delete obj_tmp_preguntasHijoData[obj_pregunta_hijo._id];
-        return obj_tmp_preguntasHijoData;
-      });
+      if (tipo_pregunta_a_borrar == "pregunta-hijo") {
+        const nuevaListaPreguntasHijo = [...listaPreguntasHijo];
+        nuevaListaPreguntasHijo.splice(posicion, 1);
+        setListaPreguntasHijo(nuevaListaPreguntasHijo);
+        setPreguntasHijoData((prevState) => {
+          const obj_tmp_preguntasHijoData = { ...prevState };
+          delete obj_tmp_preguntasHijoData[obj_pregunta_hijo._id];
+          return obj_tmp_preguntasHijoData;
+        });
+      } else if (tipo_pregunta_a_borrar == "pregunta-correcta") {
+        const nuevaListaPreguntasHijo = [...listaPreguntasHijo];
+        setPreguntasHijoData((prevState) => {
+          const obj_tmp_preguntasHijoData = { ...prevState };
+          delete obj_tmp_preguntasHijoData[nuevaListaPreguntasHijo[posicion].id_pregunta_correcta];
+          return obj_tmp_preguntasHijoData;
+        });
+        nuevaListaPreguntasHijo[posicion].id_pregunta_correcta = "";
+        setListaPreguntasHijo(nuevaListaPreguntasHijo);
+      } else {
+        // tipo_pregunta_a_borrar == "pregunta-incorrecta"
+        const nuevaListaPreguntasHijo = [...listaPreguntasHijo];
+        setPreguntasHijoData((prevState) => {
+          const obj_tmp_preguntasHijoData = { ...prevState };
+          delete obj_tmp_preguntasHijoData[
+            nuevaListaPreguntasHijo[posicion].id_pregunta_incorrecta
+          ];
+          return obj_tmp_preguntasHijoData;
+        });
+        nuevaListaPreguntasHijo[posicion].id_pregunta_incorrecta = "";
+        setListaPreguntasHijo(nuevaListaPreguntasHijo);
+      }
     }
   };
 
@@ -546,7 +581,7 @@ export default function RespuestaInteractivaSecuencial() {
                           <button
                             onClick={(e) => {
                               e.preventDefault();
-                              handleConfirmarEliminarPreguntaHijoDeListaPreguntaHijo(
+                              handleConfirmarEliminarPreguntaDeListaPreguntaHijo(
                                 preguntaHijoCargada
                               );
                             }}
@@ -584,18 +619,44 @@ export default function RespuestaInteractivaSecuencial() {
                       <h5>Pregunta corecta</h5>
                       <div>
                         {preguntaCorrectaCargada ? (
-                          <PreguntaIndividual
-                            pregunta={preguntaCorrectaCargada}
-                            flechaVacia={flechaVacia}
-                            flechaLlena={flechaLlena}
-                            cantidad_preguntas_por_actividad={"Pregunta-correcta-de-pregunta-hijo"}
-                            arreglo_objetos_actividades_por_pregunta={
-                              "Pregunta-correcta-de-pregunta-hijo"
-                            }
-                            rerenderPorActualizacionDeDatos={rerenderPorActualizacionDeDatos}
-                            setRerenderPorActualizacionDeDatos={setRerenderPorActualizacionDeDatos}
-                            en_pregunta_hijo={true}
-                          />
+                          <div className="w-100 d-flex justify-content-center align-items-center">
+                            <button
+                              onClick={(e) => {
+                                e.preventDefault();
+                                handleConfirmarEliminarPreguntaDeListaPreguntaHijo(
+                                  preguntaHijoCargada,
+                                  "pregunta-correcta"
+                                );
+                              }}
+                              className="btn btn-danger rounded-2 d-flex justify-content-center align-items-center px-2 py-5">
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="16"
+                                height="16"
+                                fill="currentColor"
+                                className="bi bi-x-lg"
+                                viewBox="0 0 16 16">
+                                <path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8z" />
+                              </svg>
+                            </button>
+
+                            <PreguntaIndividual
+                              pregunta={preguntaCorrectaCargada}
+                              flechaVacia={flechaVacia}
+                              flechaLlena={flechaLlena}
+                              cantidad_preguntas_por_actividad={
+                                "Pregunta-correcta-de-pregunta-hijo"
+                              }
+                              arreglo_objetos_actividades_por_pregunta={
+                                "Pregunta-correcta-de-pregunta-hijo"
+                              }
+                              rerenderPorActualizacionDeDatos={rerenderPorActualizacionDeDatos}
+                              setRerenderPorActualizacionDeDatos={
+                                setRerenderPorActualizacionDeDatos
+                              }
+                              en_pregunta_hijo={true}
+                            />
+                          </div>
                         ) : (
                           <RegistrarOBuscarPregunta
                             preguntaRegistrada={preguntaRegistrada}
@@ -614,23 +675,54 @@ export default function RespuestaInteractivaSecuencial() {
                       <h5>Pregunta incorrecta</h5>
                       <div>
                         {preguntaIncorrectaCargada ? (
-                          <PreguntaIndividual
-                            pregunta={preguntaIncorrectaCargada}
-                            flechaVacia={flechaVacia}
-                            flechaLlena={flechaLlena}
-                            cantidad_preguntas_por_actividad={
-                              "Pregunta-incorrecta-de-pregunta-hijo"
-                            }
-                            arreglo_objetos_actividades_por_pregunta={
-                              "Pregunta-incorrecta-de-pregunta-hijo"
-                            }
-                            rerenderPorActualizacionDeDatos={rerenderPorActualizacionDeDatos}
-                            setRerenderPorActualizacionDeDatos={setRerenderPorActualizacionDeDatos}
-                            en_pregunta_hijo={true}
-                          />
+                          <div className="w-100 d-flex justify-content-center align-items-center">
+                            <button
+                              onClick={(e) => {
+                                e.preventDefault();
+                                handleConfirmarEliminarPreguntaDeListaPreguntaHijo(
+                                  preguntaHijoCargada,
+                                  "pregunta-incorrecta"
+                                );
+                              }}
+                              className="btn btn-danger rounded-2 d-flex justify-content-center align-items-center px-2 py-5">
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="16"
+                                height="16"
+                                fill="currentColor"
+                                className="bi bi-x-lg"
+                                viewBox="0 0 16 16">
+                                <path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8z" />
+                              </svg>
+                            </button>
+                            <PreguntaIndividual
+                              pregunta={preguntaIncorrectaCargada}
+                              flechaVacia={flechaVacia}
+                              flechaLlena={flechaLlena}
+                              cantidad_preguntas_por_actividad={
+                                "Pregunta-incorrecta-de-pregunta-hijo"
+                              }
+                              arreglo_objetos_actividades_por_pregunta={
+                                "Pregunta-incorrecta-de-pregunta-hijo"
+                              }
+                              rerenderPorActualizacionDeDatos={rerenderPorActualizacionDeDatos}
+                              setRerenderPorActualizacionDeDatos={
+                                setRerenderPorActualizacionDeDatos
+                              }
+                              en_pregunta_hijo={true}
+                            />
+                          </div>
                         ) : (
+                          <RegistrarOBuscarPregunta
+                            preguntaRegistrada={preguntaRegistrada}
+                            setPreguntaRegistrada={setPreguntaRegistrada}
+                            tipoDePreguntaAAniadir={"pregunta-incorrecta"}
+                            registrandoPregunta={registrandoPregunta}
+                            setRegistrandoPregunta={setRegistrandoPregunta}
+                            idPreguntaHijoALaQuePertenece={preguntaHijoCargada}
+                          />
                           // Muestra un componente o texto de "Cargando..." mientras se espera que la pregunta se cargue
-                          <span>Cargando...</span>
+                          // <span>Cargando...</span>
                         )}
                       </div>
                     </div>

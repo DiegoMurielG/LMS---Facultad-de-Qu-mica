@@ -459,9 +459,6 @@ export default function PreguntaIndividual({
           {/* <RenderPreguntaIndividual pregunta={pregunta} /> */}
         </div>
         {/* Actividades */}
-        {console.log(
-          `arreglo_objetos_actividades_por_pregunta:${arreglo_objetos_actividades_por_pregunta}`
-        )}
         <div
           className={
             arreglo_objetos_actividades_por_pregunta === "Pregunta-hijo" ||

@@ -85,6 +85,9 @@ export default function RegistrarPregunta({
   const [numeroColumnas, setNumeroColumnas] = useState(2);
   const [numeroFilas, setNumeroFilas] = useState(2);
 
+  // Lista de objetos de pregunta hijo, para el tipo de pregunta 5: Interactiva secuencial (<RespuestaInteractivaSecuencial />)
+  const [listaPreguntasHijo, setListaPreguntasHijo] = useState([]);
+
   // const [respuestaAMostrar, setRespuestaAMostrar] = useState(<></>);
 
   // const dictTiposRespuesta = {
@@ -113,6 +116,87 @@ export default function RegistrarPregunta({
     withCredentials: true, // Si necesitas enviar cookies
   });
   // axios.defaults.withCredentials = true;
+
+  // Para actualizar answers y correctAnswers cuando listaPreguntasHijo cambie
+  useEffect(() => {
+    async function actualizarCorrectAnswersParaInteractivaSecuencial() {
+      const tmpAnswers = listaPreguntasHijo.map((preguntaHijo) => {
+        preguntaHijo[preguntaHijo.id_pregunta_hijo] = "";
+        preguntaHijo[preguntaHijo.id_pregunta_correcta] = "";
+        preguntaHijo[preguntaHijo.id_pregunta_incorrecta] = "";
+        return preguntaHijo;
+      });
+      setAnswers(tmpAnswers);
+
+      // Reccoremos la lista de preguntas hijo y guardamos la respuesta correcta esperada (la que puso el profesor contra la que se comprara la respuesta del alumno) de la pregunta hijo y de la pregunta correcta dentro de un arreglo como dice en Question.js (correctAnswer: [])
+      // No guardamos la respuesta esperada de la pregunta incorrecta porque no nos interesa evaluar esa pregunta
+      let tmpCorrectAnswers = [];
+      tmpCorrectAnswers = await Promise.all(
+        listaPreguntasHijo.map(async (obj_pregunta_hijo) => {
+          const tmpCorrectAnswer = {
+            id_pregunta_hijo: obj_pregunta_hijo["id_pregunta_hijo"],
+            id_pregunta_correcta: obj_pregunta_hijo["id_pregunta_correcta"],
+          };
+
+          // Buscamos la pregunta hijo en la DB y guardamos la respuesta correcta esperada
+          try {
+            const response = await api.post("/buscar-preguntas", {
+              palabra_a_buscar: `#: ${obj_pregunta_hijo["id_pregunta_hijo"]}`,
+            });
+            if (response.data.Status === 607 && response.data.docs[0]) {
+              const pregunta_encontrada = response.data.docs[0];
+              const nombreTmp = obj_pregunta_hijo["id_pregunta_hijo"];
+              tmpCorrectAnswer[nombreTmp] = pregunta_encontrada.correctAnswer;
+            }
+          } catch (error) {
+            console.error(
+              `Error buscando la pregunta hijo ${obj_pregunta_hijo["id_pregunta_hijo"]}.\n${error}`
+            );
+          }
+
+          // Buscamos la pregunta correcta en la DB y guardamos la respuesta correcta esperada
+          try {
+            const response = await api.post("/buscar-preguntas", {
+              palabra_a_buscar: `#: ${obj_pregunta_hijo["id_pregunta_correcta"]}`,
+            });
+            if (response.data.Status === 607 && response.data.docs[0]) {
+              const pregunta_encontrada = response.data.docs[0];
+              const nombreTmp = obj_pregunta_hijo["id_pregunta_correcta"];
+              tmpCorrectAnswer[nombreTmp] = pregunta_encontrada.correctAnswer;
+            }
+          } catch (error) {
+            console.error(
+              `Error buscando la pregunta correcta ${obj_pregunta_hijo["id_pregunta_correcta"]}.\n${error}`
+            );
+          }
+
+          return tmpCorrectAnswer;
+        })
+      );
+      console.log(`answers:\n${JSON.stringify(tmpAnswers)}`);
+      console.log(`correctAnswers:\n${JSON.stringify(tmpCorrectAnswers)}`);
+      // setCorrectAnswers((prevCorrectAnswers) => [...tmpCorrectAnswers]);
+      setCorrectAnswers(tmpCorrectAnswers);
+      actualizar_correct_answers_y_answers = false;
+    }
+    // Bandera que indica el momento en el cuál se puede o no actualizar correctAnswers y answers según si la lista de preguntas hijo esta "completa" o no, es decir, que todas las preguntas hijo existentes tengan una pregunta correcta e incorrecta asignada
+    let actualizar_correct_answers_y_answers = false;
+    listaPreguntasHijo.forEach((obj_pregunta_hijo) => {
+      if (
+        obj_pregunta_hijo.id_pregunta_hijo != "" &&
+        obj_pregunta_hijo.id_pregunta_correcta != "" &&
+        obj_pregunta_hijo.id_pregunta_incorrecta != ""
+      ) {
+        actualizar_correct_answers_y_answers = true;
+      } else {
+        actualizar_correct_answers_y_answers = false;
+        return;
+      }
+    });
+    if (actualizar_correct_answers_y_answers) {
+      actualizarCorrectAnswersParaInteractivaSecuencial();
+    }
+  }, [listaPreguntasHijo]);
 
   // useEffect para actualizar correctAnswers cuando listaRespuestas cambie
   useEffect(() => {
@@ -156,9 +240,12 @@ export default function RegistrarPregunta({
         return listaRespuestasCorrectas;
       });
     }
-  }, [listaRespuestas, tipoPregunta, listaElementosTabla]);
+    // else if (tipoPreguntaDict[tipoPregunta] === "Interactiva secuencial") {
+    //   actualizarCorrectAnswersParaInteractivaSecuencial();
+    // }
+  }, [listaRespuestas, tipoPregunta, listaElementosTabla]); //, listaPreguntasHijo
 
-  const construirPregunta = () => {
+  const construirPregunta = async () => {
     // Colocar el tipo de dato que se guardará en "answers" según el tipo de respuesta que crearemos:
     // Colocar qué guardará el arreglo de respuestas correctas para marcar la respuesta como completada según su tipo
     if (tipoPreguntaDict[tipoPregunta] === "Abierta") {
@@ -200,12 +287,12 @@ export default function RegistrarPregunta({
       alert(
         "Por definir el tipo de dato de 'answers' y 'correctAnswers' en pregunta del tipo: Varias preguntas"
       );
-      setAnswers("");
-      setCorrectAnswers(["Algo"]);
     } else if (tipoPreguntaDict[tipoPregunta] === "Interactiva secuencial") {
-      alert(
-        "Por definir el tipo de dato de 'answers' en pregunta del tipo: Interactiva secuencial"
-      );
+      // alert(
+      //   "Por definir el tipo de dato de 'answers' en pregunta del tipo: Interactiva secuencial"
+      // );
+      // setAnswers("");
+      // setCorrectAnswers(["Algo"]);
     } else if (tipoPreguntaDict[tipoPregunta] === "Completar un texto") {
       alert(
         "Por definir el tipo de dato de 'answers' y 'correctAnswers' en pregunta del tipo: Completar un texto"
@@ -386,7 +473,7 @@ export default function RegistrarPregunta({
           : idContenidoPosterior != ""
           ? [idContenidoPosterior]
           : [],
-      questions: [],
+      questions: listaPreguntasHijo,
     };
 
     console.log(JSON.stringify(pregunta));
@@ -408,11 +495,12 @@ export default function RegistrarPregunta({
   //   idContenidoPosterior,
   // ]);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     alert("Registrando pregunta...");
 
-    construirPregunta();
+    await construirPregunta();
+    console.log(`pregunta: ${JSON.stringify(pregunta)}`);
     let respuestaRegistrarPregunta = "";
     api
       .post("/registrar-pregunta", {
@@ -536,6 +624,7 @@ export default function RegistrarPregunta({
     setListaRespuestas([]);
     setListaElementosTabla([]);
     setValorPuntosPregunta(0);
+    // setListaPreguntasHijo([]);
   };
 
   const handleBuscarActividades = (e) => {
@@ -846,7 +935,10 @@ export default function RegistrarPregunta({
             <></>
           )}
           {tipoPregunta === 5 ? (
-            <RespuestaInteractivaSecuencial />
+            <RespuestaInteractivaSecuencial
+              listaPreguntasHijo={listaPreguntasHijo}
+              setListaPreguntasHijo={setListaPreguntasHijo}
+            />
           ) : (
             // <>
             //   <p>Por completar</p>
