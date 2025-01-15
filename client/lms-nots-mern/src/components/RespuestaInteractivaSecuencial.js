@@ -8,8 +8,12 @@ import InputBuscador from "./InputBuscador";
 import RegistrarOBuscarPregunta from "./RegistrarOBuscarPregunta";
 
 export default function RespuestaInteractivaSecuencial({
-  listaPreguntasHijo, // Lista de preguntas hijo de la pregunta Interactiva Secuencial, este prop se utiliza para pasar el estado de <RespuestaInteractivaSecuencial /> hacia <RegistrarPregunta /> y poder guardar las preguntas en la DB
-  setListaPreguntasHijo, // Función para actualizar el estado de listaPreguntasHijo
+  listaPreguntasHijo = [], // Lista de preguntas hijo de la pregunta Interactiva Secuencial, este prop se utiliza para pasar el estado de <RespuestaInteractivaSecuencial /> hacia <RegistrarPregunta /> y poder guardar las preguntas en la DB
+  setListaPreguntasHijo = null, // Función para actualizar el estado de listaPreguntasHijo
+  isDisabled = true, // SI es true, significa que estamos creando la pregunta, si es false significa que la estamos vizualizando para responderla
+  contestadaCorrectamente = false,
+  preguntaContestada = false,
+  preguntaConstruida = null, // La pregunta que está construida y vamosa  vlizualizar (prop de "pregunta" desde el componente de <RenderPreguntaIndividual />)
 }) {
   // Para la vizualización de la pregunta
   const flechaVacia = (
@@ -61,6 +65,8 @@ export default function RespuestaInteractivaSecuencial({
 
   // Diccionario de estado para almacenar las preguntas cargadas
   const [preguntasHijoData, setPreguntasHijoData] = useState({});
+
+  const [listaPreguntasHijoParaRender, setListaPreguntasHijoParaRender] = useState([]);
 
   // Estado cargando de pregunta
   let pregunta_cargando = {
@@ -497,66 +503,112 @@ export default function RespuestaInteractivaSecuencial({
     setListaPreguntasHijo(updatedList);
   };
 
+  // Se ejecuta cuando estamos vizualizando la pregunta y ayuda a buscar las preguntas a mostrar en la DB y guardarlas en la listaPreguntasHijoParaRender
+  useEffect(() => {
+    // Buscamos la pregunta en la DB
+    preguntaConstruida.questions.forEach(async (obj_pregunta_hijo) => {
+      // Buscamos la pregunta hijo
+      const preguntaHijoCargada = await buscarPreguntaPorId(obj_pregunta_hijo["id_pregunta_hijo"]);
+
+      // Buscamos la pregunta correcta
+      const preguntaCorrectaCargada = await buscarPreguntaPorId(
+        obj_pregunta_hijo["id_pregunta_correcta"]
+      );
+
+      // Buscamos la pregunta incorrecta
+      const preguntaIncorrectaCargada = await buscarPreguntaPorId(
+        obj_pregunta_hijo["id_pregunta_incorrecta"]
+      );
+
+      // Guardamos las preguntas encontradas en la listaPreguntasHijoParaRender
+      const preguntaHijoParaRender = {
+        pregunta_hijo: preguntaHijoCargada,
+        pregunta_correcta: preguntaCorrectaCargada,
+        pregunta_incorrecta: preguntaIncorrectaCargada,
+        pregunta_hijo_correcta: false,
+        intentos_pregunta_hijo: 0,
+        pregunta_correcta_correcta: false,
+      };
+
+      setListaPreguntasHijoParaRender((prevLista) => {
+        // Check if the question already exists in the list
+        const exists = prevLista.some(
+          (pregunta) => pregunta.pregunta_hijo._id === preguntaHijoParaRender.pregunta_hijo._id
+        );
+
+        // If it doesn't exist, add it to the list
+        if (!exists) {
+          return [...prevLista, preguntaHijoParaRender];
+        }
+
+        // Otherwise, return the list as is
+        return prevLista;
+      });
+    });
+  }, [isDisabled, preguntaConstruida]);
+
   return (
     <div className="d-flex flex-column justify-content-center align-items-center rounded-3 border border-secondary-subtle border-2 w-100">
-      {/* Instrucciones */}
-      <div className="d-flex flex-column justify-content-center align-items-center bg-body-secondary rounded-3 w-100 mb-3">
-        <h4>Instrucciones para agregar preguntas de forma secuencial</h4>
-        <ol>
-          <li className="text-start">
-            <p>
-              Primero <b>añada una pregunta hijo</b> y coloque su contenido
-            </p>
-          </li>
-          <li className="text-start">
-            <p>
-              Después <b>eliga lo que pasará</b> cuando se contesta correcta e incorrectamente la
-              pregunta. <b>Después de contestar una pregunta hijo correctamente</b>, se habilitará
-              automáticamente la siguiente <i>pregunta hijo</i> en la lista.
-            </p>
-          </li>
-        </ol>
-      </div>
+      {isDisabled ? (
+        // {/* Instrucciones */}
+        <div>
+          <div className="d-flex flex-column justify-content-center align-items-center bg-body-secondary rounded-3 w-100 mb-3">
+            <h4>Instrucciones para agregar preguntas de forma secuencial</h4>
+            <ol>
+              <li className="text-start">
+                <p>
+                  Primero <b>añada una pregunta hijo</b> y coloque su contenido
+                </p>
+              </li>
+              <li className="text-start">
+                <p>
+                  Después <b>eliga lo que pasará</b> cuando se contesta correcta e incorrectamente
+                  la pregunta. <b>Después de contestar una pregunta hijo correctamente</b>, se
+                  habilitará automáticamente la siguiente <i>pregunta hijo</i> en la lista.
+                </p>
+              </li>
+            </ol>
+          </div>
+          {/* // Añadir preguntas */}
+          <div className="d-flex flex-column justify-content-center align-items-center bg-body-secondary rounded-3 w-100">
+            <h4 className="mb-3">Preguntas hijo</h4>
+            <div className="d-flex flex-column justify-content-center align-items-center w-100">
+              {listaPreguntasHijo.length > 0 ? <hr className="mb-3"></hr> : <></>}
+              {listaPreguntasHijo.length > 0 ? (
+                listaPreguntasHijo.map((preguntaHijo, index) => {
+                  // Buscamos la pregunta cargada en preguntasHijoData
+                  const preguntaHijoCargada = preguntasHijoData[preguntaHijo.id_pregunta_hijo];
+                  const preguntaCorrectaCargada =
+                    preguntasHijoData[preguntaHijo.id_pregunta_correcta];
+                  const preguntaIncorrectaCargada =
+                    preguntasHijoData[preguntaHijo.id_pregunta_incorrecta];
 
-      {/* Añadir preguntas */}
-      <div className="d-flex flex-column justify-content-center align-items-center bg-body-secondary rounded-3 w-100">
-        <h4 className="mb-3">Preguntas hijo</h4>
-        <div className="d-flex flex-column justify-content-center align-items-center w-100">
-          {listaPreguntasHijo.length > 0 ? <hr className="mb-3"></hr> : <></>}
-          {listaPreguntasHijo.length > 0 ? (
-            listaPreguntasHijo.map((preguntaHijo, index) => {
-              // Buscamos la pregunta cargada en preguntasHijoData
-              const preguntaHijoCargada = preguntasHijoData[preguntaHijo.id_pregunta_hijo];
-              const preguntaCorrectaCargada = preguntasHijoData[preguntaHijo.id_pregunta_correcta];
-              const preguntaIncorrectaCargada =
-                preguntasHijoData[preguntaHijo.id_pregunta_incorrecta];
-
-              // Mostramos un placeholder mientras cargamos los datos
-              return (
-                <div key={`pregunta-hijo-${index}`} className="w-100 d-flex">
-                  <div className="w-50">
-                    {preguntaHijoCargada ? (
-                      <div className="w-100 d-flex flex-column justify-content-center align-items-center">
-                        <div className="w-100 d-flex justify-content-start align-items-center ps-3">
-                          <p className="p-0 m-0 me-1">Posición:</p>
-                          <input
-                            className="me-1"
-                            type="number"
-                            value={index}
-                            min={0}
-                            max={listaPreguntasHijo.length - 1}
-                            onChange={(e) => {
-                              e.preventDefault();
-                              const newPosition = parseInt(e.target.value, 10);
-                              handleConfirmarCambioDePosicionPreguntaHijoDeListaPreguntaHijo(
-                                preguntaHijoCargada,
-                                index,
-                                newPosition
-                              );
-                            }}
-                            disabled={false}
-                          />
-                          {/* <button
+                  // Mostramos un placeholder mientras cargamos los datos
+                  return (
+                    <div key={`pregunta-hijo-${index}`} className="w-100 d-flex">
+                      <div className="w-50">
+                        {preguntaHijoCargada ? (
+                          <div className="w-100 d-flex flex-column justify-content-center align-items-center">
+                            <div className="w-100 d-flex justify-content-start align-items-center ps-3">
+                              <p className="p-0 m-0 me-1">Posición:</p>
+                              <input
+                                className="me-1"
+                                type="number"
+                                value={index}
+                                min={0}
+                                max={listaPreguntasHijo.length - 1}
+                                onChange={(e) => {
+                                  e.preventDefault();
+                                  const newPosition = parseInt(e.target.value, 10);
+                                  handleConfirmarCambioDePosicionPreguntaHijoDeListaPreguntaHijo(
+                                    preguntaHijoCargada,
+                                    index,
+                                    newPosition
+                                  );
+                                }}
+                                disabled={false}
+                              />
+                              {/* <button
                             onClick={(e) => {
                               e.preventDefault();
                               handleConfirmarCambioDePosicionPreguntaHijoDeListaPreguntaHijo(
@@ -576,172 +628,174 @@ export default function RespuestaInteractivaSecuencial({
                               <path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0" />
                             </svg>
                           </button> */}
-                        </div>
-                        <div className="w-100 d-flex justify-content-center align-items-center">
-                          <button
-                            onClick={(e) => {
-                              e.preventDefault();
-                              handleConfirmarEliminarPreguntaDeListaPreguntaHijo(
-                                preguntaHijoCargada
-                              );
-                            }}
-                            className="btn btn-danger rounded-2 d-flex justify-content-center align-items-center px-2 py-5">
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="16"
-                              height="16"
-                              fill="currentColor"
-                              className="bi bi-x-lg"
-                              viewBox="0 0 16 16">
-                              <path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8z" />
-                            </svg>
-                          </button>
+                            </div>
+                            <div className="w-100 d-flex justify-content-center align-items-center">
+                              <button
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  handleConfirmarEliminarPreguntaDeListaPreguntaHijo(
+                                    preguntaHijoCargada
+                                  );
+                                }}
+                                className="btn btn-danger rounded-2 d-flex justify-content-center align-items-center px-2 py-5">
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  width="16"
+                                  height="16"
+                                  fill="currentColor"
+                                  className="bi bi-x-lg"
+                                  viewBox="0 0 16 16">
+                                  <path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8z" />
+                                </svg>
+                              </button>
 
-                          <PreguntaIndividual
-                            pregunta={preguntaHijoCargada}
-                            flechaVacia={flechaVacia}
-                            flechaLlena={flechaLlena}
-                            cantidad_preguntas_por_actividad={"Pregunta-hijo"}
-                            arreglo_objetos_actividades_por_pregunta={"Pregunta-hijo"}
-                            rerenderPorActualizacionDeDatos={rerenderPorActualizacionDeDatos}
-                            setRerenderPorActualizacionDeDatos={setRerenderPorActualizacionDeDatos}
-                            en_pregunta_hijo={true}
-                          />
-                        </div>
-                      </div>
-                    ) : (
-                      // Muestra un componente o texto de "Cargando..." mientras se espera que la pregunta se cargue
-                      <span>Cargando...</span>
-                    )}
-                  </div>
-                  <div className="w-50 d-flex flex-column">
-                    <div>
-                      <h5>Pregunta corecta</h5>
-                      <div>
-                        {preguntaCorrectaCargada ? (
-                          <div className="w-100 d-flex justify-content-center align-items-center">
-                            <button
-                              onClick={(e) => {
-                                e.preventDefault();
-                                handleConfirmarEliminarPreguntaDeListaPreguntaHijo(
-                                  preguntaHijoCargada,
-                                  "pregunta-correcta"
-                                );
-                              }}
-                              className="btn btn-danger rounded-2 d-flex justify-content-center align-items-center px-2 py-5">
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="16"
-                                height="16"
-                                fill="currentColor"
-                                className="bi bi-x-lg"
-                                viewBox="0 0 16 16">
-                                <path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8z" />
-                              </svg>
-                            </button>
-
-                            <PreguntaIndividual
-                              pregunta={preguntaCorrectaCargada}
-                              flechaVacia={flechaVacia}
-                              flechaLlena={flechaLlena}
-                              cantidad_preguntas_por_actividad={
-                                "Pregunta-correcta-de-pregunta-hijo"
-                              }
-                              arreglo_objetos_actividades_por_pregunta={
-                                "Pregunta-correcta-de-pregunta-hijo"
-                              }
-                              rerenderPorActualizacionDeDatos={rerenderPorActualizacionDeDatos}
-                              setRerenderPorActualizacionDeDatos={
-                                setRerenderPorActualizacionDeDatos
-                              }
-                              en_pregunta_hijo={true}
-                            />
+                              <PreguntaIndividual
+                                pregunta={preguntaHijoCargada}
+                                flechaVacia={flechaVacia}
+                                flechaLlena={flechaLlena}
+                                cantidad_preguntas_por_actividad={"Pregunta-hijo"}
+                                arreglo_objetos_actividades_por_pregunta={"Pregunta-hijo"}
+                                rerenderPorActualizacionDeDatos={rerenderPorActualizacionDeDatos}
+                                setRerenderPorActualizacionDeDatos={
+                                  setRerenderPorActualizacionDeDatos
+                                }
+                                en_pregunta_hijo={false}
+                              />
+                            </div>
                           </div>
                         ) : (
-                          <RegistrarOBuscarPregunta
-                            preguntaRegistrada={preguntaRegistrada}
-                            setPreguntaRegistrada={setPreguntaRegistrada}
-                            tipoDePreguntaAAniadir={"pregunta-correcta"}
-                            registrandoPregunta={registrandoPregunta}
-                            setRegistrandoPregunta={setRegistrandoPregunta}
-                            idPreguntaHijoALaQuePertenece={preguntaHijoCargada}
-                          />
                           // Muestra un componente o texto de "Cargando..." mientras se espera que la pregunta se cargue
-                          // <span>Cargando...</span>
+                          <span>Cargando...</span>
                         )}
                       </div>
-                    </div>
-                    <div>
-                      <h5>Pregunta incorrecta</h5>
-                      <div>
-                        {preguntaIncorrectaCargada ? (
-                          <div className="w-100 d-flex justify-content-center align-items-center">
-                            <button
-                              onClick={(e) => {
-                                e.preventDefault();
-                                handleConfirmarEliminarPreguntaDeListaPreguntaHijo(
-                                  preguntaHijoCargada,
-                                  "pregunta-incorrecta"
-                                );
-                              }}
-                              className="btn btn-danger rounded-2 d-flex justify-content-center align-items-center px-2 py-5">
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="16"
-                                height="16"
-                                fill="currentColor"
-                                className="bi bi-x-lg"
-                                viewBox="0 0 16 16">
-                                <path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8z" />
-                              </svg>
-                            </button>
-                            <PreguntaIndividual
-                              pregunta={preguntaIncorrectaCargada}
-                              flechaVacia={flechaVacia}
-                              flechaLlena={flechaLlena}
-                              cantidad_preguntas_por_actividad={
-                                "Pregunta-incorrecta-de-pregunta-hijo"
-                              }
-                              arreglo_objetos_actividades_por_pregunta={
-                                "Pregunta-incorrecta-de-pregunta-hijo"
-                              }
-                              rerenderPorActualizacionDeDatos={rerenderPorActualizacionDeDatos}
-                              setRerenderPorActualizacionDeDatos={
-                                setRerenderPorActualizacionDeDatos
-                              }
-                              en_pregunta_hijo={true}
-                            />
+                      <div className="w-50 d-flex flex-column">
+                        <div>
+                          <h5>Pregunta corecta</h5>
+                          <div>
+                            {preguntaCorrectaCargada ? (
+                              <div className="w-100 d-flex justify-content-center align-items-center">
+                                <button
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    handleConfirmarEliminarPreguntaDeListaPreguntaHijo(
+                                      preguntaHijoCargada,
+                                      "pregunta-correcta"
+                                    );
+                                  }}
+                                  className="btn btn-danger rounded-2 d-flex justify-content-center align-items-center px-2 py-5">
+                                  <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="16"
+                                    height="16"
+                                    fill="currentColor"
+                                    className="bi bi-x-lg"
+                                    viewBox="0 0 16 16">
+                                    <path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8z" />
+                                  </svg>
+                                </button>
+
+                                <PreguntaIndividual
+                                  pregunta={preguntaCorrectaCargada}
+                                  flechaVacia={flechaVacia}
+                                  flechaLlena={flechaLlena}
+                                  cantidad_preguntas_por_actividad={
+                                    "Pregunta-correcta-de-pregunta-hijo"
+                                  }
+                                  arreglo_objetos_actividades_por_pregunta={
+                                    "Pregunta-correcta-de-pregunta-hijo"
+                                  }
+                                  rerenderPorActualizacionDeDatos={rerenderPorActualizacionDeDatos}
+                                  setRerenderPorActualizacionDeDatos={
+                                    setRerenderPorActualizacionDeDatos
+                                  }
+                                  en_pregunta_hijo={true}
+                                />
+                              </div>
+                            ) : (
+                              <RegistrarOBuscarPregunta
+                                preguntaRegistrada={preguntaRegistrada}
+                                setPreguntaRegistrada={setPreguntaRegistrada}
+                                tipoDePreguntaAAniadir={"pregunta-correcta"}
+                                registrandoPregunta={registrandoPregunta}
+                                setRegistrandoPregunta={setRegistrandoPregunta}
+                                idPreguntaHijoALaQuePertenece={preguntaHijoCargada}
+                              />
+                              // Muestra un componente o texto de "Cargando..." mientras se espera que la pregunta se cargue
+                              // <span>Cargando...</span>
+                            )}
                           </div>
-                        ) : (
-                          <RegistrarOBuscarPregunta
-                            preguntaRegistrada={preguntaRegistrada}
-                            setPreguntaRegistrada={setPreguntaRegistrada}
-                            tipoDePreguntaAAniadir={"pregunta-incorrecta"}
-                            registrandoPregunta={registrandoPregunta}
-                            setRegistrandoPregunta={setRegistrandoPregunta}
-                            idPreguntaHijoALaQuePertenece={preguntaHijoCargada}
-                          />
-                          // Muestra un componente o texto de "Cargando..." mientras se espera que la pregunta se cargue
-                          // <span>Cargando...</span>
-                        )}
+                        </div>
+                        <div>
+                          <h5>Pregunta incorrecta</h5>
+                          <div>
+                            {preguntaIncorrectaCargada ? (
+                              <div className="w-100 d-flex justify-content-center align-items-center">
+                                <button
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    handleConfirmarEliminarPreguntaDeListaPreguntaHijo(
+                                      preguntaHijoCargada,
+                                      "pregunta-incorrecta"
+                                    );
+                                  }}
+                                  className="btn btn-danger rounded-2 d-flex justify-content-center align-items-center px-2 py-5">
+                                  <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="16"
+                                    height="16"
+                                    fill="currentColor"
+                                    className="bi bi-x-lg"
+                                    viewBox="0 0 16 16">
+                                    <path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8z" />
+                                  </svg>
+                                </button>
+                                <PreguntaIndividual
+                                  pregunta={preguntaIncorrectaCargada}
+                                  flechaVacia={flechaVacia}
+                                  flechaLlena={flechaLlena}
+                                  cantidad_preguntas_por_actividad={
+                                    "Pregunta-incorrecta-de-pregunta-hijo"
+                                  }
+                                  arreglo_objetos_actividades_por_pregunta={
+                                    "Pregunta-incorrecta-de-pregunta-hijo"
+                                  }
+                                  rerenderPorActualizacionDeDatos={rerenderPorActualizacionDeDatos}
+                                  setRerenderPorActualizacionDeDatos={
+                                    setRerenderPorActualizacionDeDatos
+                                  }
+                                  en_pregunta_hijo={true}
+                                />
+                              </div>
+                            ) : (
+                              <RegistrarOBuscarPregunta
+                                preguntaRegistrada={preguntaRegistrada}
+                                setPreguntaRegistrada={setPreguntaRegistrada}
+                                tipoDePreguntaAAniadir={"pregunta-incorrecta"}
+                                registrandoPregunta={registrandoPregunta}
+                                setRegistrandoPregunta={setRegistrandoPregunta}
+                                idPreguntaHijoALaQuePertenece={preguntaHijoCargada}
+                              />
+                              // Muestra un componente o texto de "Cargando..." mientras se espera que la pregunta se cargue
+                              // <span>Cargando...</span>
+                            )}
+                          </div>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </div>
-              );
-            })
-          ) : (
-            <></>
-          )}
-        </div>
-        <RegistrarOBuscarPregunta
-          preguntaRegistrada={preguntaRegistrada}
-          setPreguntaRegistrada={setPreguntaRegistrada}
-          tipoDePreguntaAAniadir={"pregunta-hijo"}
-          registrandoPregunta={registrandoPregunta}
-          setRegistrandoPregunta={setRegistrandoPregunta}
-        />
-        {/* <div className={registrandoPregunta ? "d-block" : " d-none"}>
+                  );
+                })
+              ) : (
+                <></>
+              )}
+            </div>
+            <RegistrarOBuscarPregunta
+              preguntaRegistrada={preguntaRegistrada}
+              setPreguntaRegistrada={setPreguntaRegistrada}
+              tipoDePreguntaAAniadir={"pregunta-hijo"}
+              registrandoPregunta={registrandoPregunta}
+              setRegistrandoPregunta={setRegistrandoPregunta}
+            />
+            {/* <div className={registrandoPregunta ? "d-block" : " d-none"}>
           <div className="d-flex flex-column justify-content-center align-items-center">
             <select
               defaultValue={""}
@@ -823,7 +877,119 @@ export default function RespuestaInteractivaSecuencial({
           className="btn btn-success">
           Añadir pregunta hijo
         </button> */}
-      </div>
+          </div>
+        </div>
+      ) : (
+        // {/* Instrucciones */}
+        <div>
+          <div className="d-flex flex-column justify-content-center align-items-center bg-body-secondary rounded-3 w-100 mb-3">
+            <h4>Instrucciones para constestar preguntas de forma secuencial</h4>
+            <ol>
+              <li className="text-start">
+                <p>
+                  <b>Conteste</b> la pregunta que se le presenta en pantalla.
+                </p>
+              </li>
+              <li className="text-start">
+                <p>
+                  Si su <b>respuesta es correcta</b> seguirá contestando preguntas <i>avanzando</i>{" "}
+                  en la lista
+                </p>
+              </li>
+              <li className="text-start">
+                <p>
+                  Si su{" "}
+                  <b>
+                    respuesta es <i>incorrecta</i>
+                  </b>{" "}
+                  contestará una pregunta de <i>ayuda</i> para reintentar la pregunta anterior y
+                  seguir avanzando en la lista.
+                </p>
+              </li>
+            </ol>
+          </div>
+          {/* // Contestar preguntas */}
+          <div className="d-flex flex-column justify-content-center align-items-center bg-body-secondary rounded-3 w-100">
+            <div className="d-flex flex-column justify-content-center align-items-center w-100">
+              {/* Buscamos las preguntas del prop "pregunta" en el campo "question" en la DB y las cargamos en la listaPreguntasHijoParaRender utilizando el useEffect que se activa cuando isDisabled y preguntaConstruida cambian */}
+              {listaPreguntasHijoParaRender.length > 0 ? <hr className="mb-3"></hr> : <></>}
+              {listaPreguntasHijoParaRender.length > 0 ? (
+                listaPreguntasHijoParaRender.map((obj_pregunta_hijo, index) => {
+                  // Buscamos la pregunta cargada en preguntasHijoData
+                  // const preguntaHijoCargada = preguntasHijoData[obj_pregunta_hijo.id_pregunta_hijo];
+                  // const preguntaCorrectaCargada =
+                  //   preguntasHijoData[obj_pregunta_hijo.id_pregunta_correcta];
+                  // const preguntaIncorrectaCargada =
+                  //   preguntasHijoData[obj_pregunta_hijo.id_pregunta_incorrecta];
+
+                  // Mostramos un placeholder mientras cargamos los datos
+                  return (
+                    <div key={`pregunta-hijo-${index}`} className="w-100 d-flex flex-column">
+                      <div className="w-100">
+                        <div className="w-100 d-flex flex-column justify-content-center align-items-center">
+                          <div className="w-100 d-flex justify-content-start align-items-center ps-3">
+                            <p className="p-0 m-0 me-1">Posición:</p>
+                            <input
+                              className="me-1"
+                              type="number"
+                              value={index}
+                              min={0}
+                              max={listaPreguntasHijoParaRender.length - 1}
+                              disabled={true}
+                            />
+                          </div>
+                          <div className="w-100 d-flex justify-content-center align-items-center">
+                            <RenderPreguntaIndividual
+                              pregunta={obj_pregunta_hijo.pregunta_hijo}
+                              correcta={obj_pregunta_hijo.pregunta_hijo_correcta}
+                              setListaPreguntasHijoParaRender={setListaPreguntasHijoParaRender}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                      <div className="w-100 d-flex flex-column">
+                        <div>
+                          <div>
+                            <div
+                              className={
+                                obj_pregunta_hijo.pregunta_hijo_correcta
+                                  ? "w-100 d-flex justify-content-center align-items-center"
+                                  : "d-none"
+                              }>
+                              <RenderPreguntaIndividual
+                                pregunta={obj_pregunta_hijo.pregunta_correcta}
+                                correcta={obj_pregunta_hijo.pregunta_correcta_correcta}
+                                setListaPreguntasHijoParaRender={setListaPreguntasHijoParaRender}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                        <div>
+                          <div>
+                            <div
+                              className={
+                                !obj_pregunta_hijo.pregunta_hijo_correcta &&
+                                obj_pregunta_hijo.intentos_pregunta_hijo > 0
+                                  ? "w-100 d-flex justify-content-center align-items-center"
+                                  : "d-none"
+                              }>
+                              <RenderPreguntaIndividual
+                                pregunta={obj_pregunta_hijo.pregunta_incorrecta}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })
+              ) : (
+                <></>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

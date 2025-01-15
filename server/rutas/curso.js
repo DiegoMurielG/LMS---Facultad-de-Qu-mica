@@ -417,7 +417,6 @@ router.post("/registrar-pregunta", (request, response, next) => {
     contents: contents,
     questions: questions,
   } = request.body;
-  console.log(request.body);
 
   QuestionModel.create({
     typeOfQuestion: typeOfQuestion,

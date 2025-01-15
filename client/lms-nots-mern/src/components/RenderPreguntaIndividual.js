@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import RespuestaIntervaloNumerico from "./RespuestaIntervaloNumerico";
 import RespuestaCompletarNumerosTabla from "./RespuestaCompletarNumerosTabla";
 import RespuestaOpcionMultiple from "./RespuestaOpcionMultiple";
+import RespuestaInteractivaSecuencial from "./RespuestaInteractivaSecuencial";
 
 /**
  * Componente que renderiza una pregunta con solo los datos de la misma
@@ -18,6 +19,22 @@ export default function RenderPreguntaIndividual({
   setObj_actividad_a_renderizar = null,
   cantidadPreguntasRespondidas = null,
   setCantidadPreguntasRespondidas = null,
+  correcta = null, //Se utiliza solamente por el componente de <RespuestaInteractivaSecuencial /> para saber si cuando la pregunta renderizada es correcta y entonces cambiar el valor de pregunta_hijo_correcta/pregunta_correcta_correcta a false en su posición dentro de la lista de preguntas hijo para render
+  setListaPreguntasHijoParaRender = null, // Se utiliza solamente por el componente de <RespuestaInteractivaSecuencial /> para cambiar el estado de false a true en cuanto la pregunta renderizada correspondiente sea contestada correctamente
+  /*
+  Ejemplo
+    listaPreguntasHijoParaRender
+    [
+      {
+        pregunta_hijo: {todo el objeto de pregunta hijo},
+        pregunta_correcta: {todo el objeto de pregunta correcta},
+        pregunta_incorrecta: {todo el objeto de pregunta incorrecta},
+        pregunta_hijo_correcta: false, //<==== Esto cambiará el parametro "correcta" utilizando el setListaPreguntasHijoParaRender y el ID de la pregunta correspondiente
+        pregunta_correcta_correcta: false, //<==== Esto cambiará el parametro "correcta" utilizando el setListaPreguntasHijoParaRender y el ID de la pregunta correspondiente
+      }
+    ]
+
+  */
 }) {
   const [data_respuesta, setData_respuesta] = useState("");
   const [pregunta_contestada_correctamente, setPregunta_contestada_correctamente] = useState(false);
@@ -99,6 +116,8 @@ export default function RenderPreguntaIndividual({
 
   const [numeroColumnas, setNumeroColumnas] = useState(pregunta.answers[0]?.length);
   const [numeroFilas, setNumeroFilas] = useState(pregunta.answers.length);
+
+  // const [listaPreguntasHijoParaRender, setListaPreguntasHijoParaRender] = useState([]);
 
   // Utiliza useEffect para asegurarte de que listaElementosTabla se actualice cuando la pregunta cambie
   useEffect(() => {
@@ -406,6 +425,17 @@ export default function RenderPreguntaIndividual({
       );
     };
 
+    const renderPreguntaInteractivaSecuencial = (pregunta) => {
+      return (
+        <RespuestaInteractivaSecuencial
+          isDisabled={false}
+          contestadaCorrectamente={false}
+          preguntaContestada={false}
+          preguntaConstruida={pregunta}
+        />
+      );
+    };
+
     const renderPreguntaCompletarNumerosTabla = (pregunta) => {
       // console.log(`pregunta completar numeros tabla:`, pregunta);
 
@@ -462,7 +492,9 @@ export default function RenderPreguntaIndividual({
         componente_a_regresar = renderPreguntaIntervaloNumerico(pregunta);
         break;
       // "Varias preguntas"
-      // "Interactiva secuencial"
+      case "Interactiva secuencial":
+        componente_a_regresar = renderPreguntaInteractivaSecuencial(pregunta);
+        break;
       // "Completar un texto"
       // "Llenar datos y graficar"
       case "Completar número en tabla":
@@ -476,6 +508,79 @@ export default function RenderPreguntaIndividual({
     }
     return componente_a_regresar;
   };
+
+  useEffect(() => {
+    if (setListaPreguntasHijoParaRender != null) {
+      setListaPreguntasHijoParaRender((prevList) => {
+        let newList = [...prevList];
+        newList.forEach((obj_pregunta_hijo) => {
+          if (obj_pregunta_hijo.pregunta_hijo._id === pregunta._id) {
+            obj_pregunta_hijo.intentos_pregunta_hijo = cantidad_de_intentos;
+          }
+        });
+        return newList;
+      });
+    }
+  }, [cantidad_de_intentos]);
+
+  // useEffect que cuando una pregunta se contesta correctamente y es contenida dentro de una pregunta interactiva secuencial, cambia el booleano de pregunta_hijo_correcta/pregunta_correcta_correcta a true para que se renderice la siguiente pregunta
+  // useEffect que coloca si la pregunta renderizada se contestó por primera vez, utilizado para renderizar la pregunta incorrecta en el componente de <RespuestaInteractivaSecuencial />
+  useEffect(() => {
+    /**
+     * Función que guarda el estado actual de la pregunta individual en la lista de preguntas hijo para renderizar cuando estamos contestando una pregunta de tipo interactiva secuencial, esto asegura que con cada cambio se guarde su estado para guardar su última versión en la DB
+     * Se utiliza cuando esta pregunta está siendo renderizada por el componente de <RespuestaInteractivaSecuencial /> dentro de una pregunta de tipo interactiva secuencial
+     * @param {Object} pregunta_a_actualizar: Objeto de pregunta a actualizar
+     */
+    function guardarEstadoPregunta(pregunta_a_actualizar) {
+      let pregunta_actualizada = { ...pregunta_a_actualizar };
+      pregunta_actualizada.numberOfAttempts = cantidad_de_intentos;
+      pregunta_actualizada.completedCorrectly = pregunta_contestada_correctamente;
+      if (cantidad_de_intentos > 0) {
+        pregunta_actualizada.completed = true;
+      }
+
+      // Guardamos la respuesta del usuario en el campo correspondiente según el tipo de pregunta individual contestada
+      if (pregunta_actualizada.typeOfQuestion === "Opción múltiple") {
+        pregunta_actualizada.answers = listaRespuestasOpcionMultiple;
+      } else {
+        pregunta_actualizada.answers = data_respuesta;
+      }
+      return pregunta_actualizada;
+    }
+
+    if (setListaPreguntasHijoParaRender != null) {
+      setListaPreguntasHijoParaRender((prevList) => {
+        let newList = [...prevList];
+        newList.forEach((obj_pregunta_hijo) => {
+          if (obj_pregunta_hijo.pregunta_hijo._id === pregunta._id) {
+            obj_pregunta_hijo.pregunta_hijo = guardarEstadoPregunta(
+              obj_pregunta_hijo.pregunta_hijo
+            );
+            if (pregunta_contestada_correctamente) {
+              obj_pregunta_hijo.pregunta_hijo_correcta = true;
+            } else {
+              obj_pregunta_hijo.pregunta_hijo_correcta = false;
+            }
+          } else if (obj_pregunta_hijo.pregunta_correcta._id === pregunta._id) {
+            obj_pregunta_hijo.pregunta_correcta = guardarEstadoPregunta(
+              obj_pregunta_hijo.pregunta_correcta
+            );
+            if (pregunta_contestada_correctamente) {
+              obj_pregunta_hijo.pregunta_correcta_correcta = true;
+            } else {
+              obj_pregunta_hijo.pregunta_correcta_correcta = false;
+            }
+          } else {
+            obj_pregunta_hijo.pregunta_incorrecta = guardarEstadoPregunta(
+              obj_pregunta_hijo.pregunta_incorrecta
+            );
+          }
+          obj_pregunta_hijo.intentos_pregunta_hijo = cantidad_de_intentos;
+        });
+        return newList;
+      });
+    }
+  }, [pregunta_contestada_correctamente, cantidad_de_intentos]);
 
   const handleContestarPregunta = (e) => {
     const modificar_pregunta_en_obj_actividad_a_renderizar = (
@@ -659,6 +764,8 @@ export default function RenderPreguntaIndividual({
     //   }
     // };
 
+    const evaluarPreguntaInteractivaSecuencial = (pregunta_contra_la_que_comparar) => {};
+
     // Mía
     const evaluarPreguntaCompletarNumerosTabla = (pregunta_contra_la_que_comparar) => {
       let es_correcta = false;
@@ -805,7 +912,9 @@ export default function RenderPreguntaIndividual({
         evaluarPreguntaIntervaloNumerico(pregunta);
         break;
       // "Varias preguntas"
-      // "Interactiva secuencial"
+      case "Interactiva secuencial":
+        evaluarPreguntaInteractivaSecuencial(pregunta);
+        break;
       // "Completar un texto"
       // "Llenar datos y graficar"
       case "Completar número en tabla":

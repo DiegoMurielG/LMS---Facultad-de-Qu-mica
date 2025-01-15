@@ -476,7 +476,6 @@ export default function RegistrarPregunta({
       questions: listaPreguntasHijo,
     };
 
-    console.log(JSON.stringify(pregunta));
   };
 
   // useEffect(() => {
