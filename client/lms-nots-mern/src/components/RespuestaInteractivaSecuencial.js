@@ -515,46 +515,50 @@ export default function RespuestaInteractivaSecuencial({
 
   // Se ejecuta cuando estamos vizualizando la pregunta y ayuda a buscar las preguntas a mostrar en la DB y guardarlas en la listaPreguntasHijoParaRender
   useEffect(() => {
-    // Buscamos la pregunta en la DB
-    preguntaConstruida.questions.forEach(async (obj_pregunta_hijo) => {
-      // Buscamos la pregunta hijo
-      const preguntaHijoCargada = await buscarPreguntaPorId(obj_pregunta_hijo["id_pregunta_hijo"]);
-
-      // Buscamos la pregunta correcta
-      const preguntaCorrectaCargada = await buscarPreguntaPorId(
-        obj_pregunta_hijo["id_pregunta_correcta"]
-      );
-
-      // Buscamos la pregunta incorrecta
-      const preguntaIncorrectaCargada = await buscarPreguntaPorId(
-        obj_pregunta_hijo["id_pregunta_incorrecta"]
-      );
-
-      // Guardamos las preguntas encontradas en la listaPreguntasHijoParaRender
-      const preguntaHijoParaRender = {
-        pregunta_hijo: preguntaHijoCargada,
-        pregunta_correcta: preguntaCorrectaCargada,
-        pregunta_incorrecta: preguntaIncorrectaCargada,
-        pregunta_hijo_correcta: false,
-        intentos_pregunta_hijo: 0,
-        pregunta_correcta_correcta: false,
-      };
-
-      setListaPreguntasHijoParaRender((prevLista) => {
-        // Check if the question already exists in the list
-        const exists = prevLista.some(
-          (pregunta) => pregunta.pregunta_hijo._id === preguntaHijoParaRender.pregunta_hijo._id
+    if (!isDisabled) {
+      // Buscamos la pregunta en la DB
+      preguntaConstruida.questions.forEach(async (obj_pregunta_hijo) => {
+        // Buscamos la pregunta hijo
+        const preguntaHijoCargada = await buscarPreguntaPorId(
+          obj_pregunta_hijo["id_pregunta_hijo"]
         );
 
-        // If it doesn't exist, add it to the list
-        if (!exists) {
-          return [...prevLista, preguntaHijoParaRender];
-        }
+        // Buscamos la pregunta correcta
+        const preguntaCorrectaCargada = await buscarPreguntaPorId(
+          obj_pregunta_hijo["id_pregunta_correcta"]
+        );
 
-        // Otherwise, return the list as is
-        return prevLista;
+        // Buscamos la pregunta incorrecta
+        const preguntaIncorrectaCargada = await buscarPreguntaPorId(
+          obj_pregunta_hijo["id_pregunta_incorrecta"]
+        );
+
+        // Guardamos las preguntas encontradas en la listaPreguntasHijoParaRender
+        const preguntaHijoParaRender = {
+          pregunta_hijo: preguntaHijoCargada,
+          pregunta_correcta: preguntaCorrectaCargada,
+          pregunta_incorrecta: preguntaIncorrectaCargada,
+          pregunta_hijo_correcta: false,
+          intentos_pregunta_hijo: 0,
+          pregunta_correcta_correcta: false,
+        };
+
+        setListaPreguntasHijoParaRender((prevLista) => {
+          // Check if the question already exists in the list
+          const exists = prevLista.some(
+            (pregunta) => pregunta.pregunta_hijo._id === preguntaHijoParaRender.pregunta_hijo._id
+          );
+
+          // If it doesn't exist, add it to the list
+          if (!exists) {
+            return [...prevLista, preguntaHijoParaRender];
+          }
+
+          // Otherwise, return the list as is
+          return prevLista;
+        });
       });
-    });
+    }
   }, [isDisabled, preguntaConstruida]);
 
   return (
