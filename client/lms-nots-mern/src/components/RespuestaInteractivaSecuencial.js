@@ -508,7 +508,9 @@ export default function RespuestaInteractivaSecuencial({
   // useEffect que actualiza el valor del prop listaPreguntasHijoParaGuardar (viene desde <RenderPreguntaIndividual />) cada vez que se actualiza la lista de preguntas hijo para render
   useEffect(() => {
     // Actualizar la lista de preguntas hijo para guardar
-    setListaPreguntasHijoParaGuardar([...listaPreguntasHijoParaRender]);
+    if (listaPreguntasHijoParaGuardar != null) {
+      setListaPreguntasHijoParaGuardar([...listaPreguntasHijoParaRender]);
+    }
   }, [listaPreguntasHijoParaRender]);
 
   // Se ejecuta cuando estamos vizualizando la pregunta y ayuda a buscar las preguntas a mostrar en la DB y guardarlas en la listaPreguntasHijoParaRender
