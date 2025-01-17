@@ -2322,11 +2322,25 @@ router.post("/guardar-respuestas-usuario-de-un-curso", async (request, response,
   }
 });
 
-router.get("/exportar-respuestas", async (req, res) => {
+router.post("/exportar-respuestas", async (req, res) => {
+  const { selectedCourses: course_ids_list } = req.body;
+
   try {
+    // =======================================================================================================
+    // =======================================================================================================
+    // =======================================================================================================
+    // =======================================================================================================
+    // =========================== Haz que esta parte de buscar filtre por los cursos que le pasas por course_ids_list para poder tener un CSV con respuestas de todos los uruarios filtradas por el ID del curso ================
+    // =======================================================================================================
+    // =======================================================================================================
+    // =======================================================================================================
     // Busca usuarios y asegura que estás poblado adecuadamente las relaciones
     const usuarios = await UserModel.find().populate({
       path: "answers",
+      match:
+        Array.isArray(course_ids_list) && course_ids_list.includes("todos")
+          ? {}
+          : { idCourse: { $in: course_ids_list } },
       populate: {
         path: "sections",
         populate: {
@@ -2344,6 +2358,9 @@ router.get("/exportar-respuestas", async (req, res) => {
     // Usar bucle for...of para manejar las operaciones async
     for (const usuario of usuarios) {
       for (const answer of usuario.answers) {
+        // Busca el nombre del curso
+        const cursoData = await CourseModel.findById(answer.idCourse).select("nombre");
+
         for (const section of answer.sections) {
           // Busca el nombre de la sección
           const seccionData = await SectionModel.findById(section.idSection).select("name");
@@ -2360,7 +2377,6 @@ router.get("/exportar-respuestas", async (req, res) => {
                 question.idQuestion,
                 "typeOfQuestion"
               );
-              console.log(`typeOfQuestionObj: `, typeOfQuestionObj);
               if (typeOfQuestionObj == null) {
                 typeOfQuestionObj = { typeOfQuestion: "To default switch case" };
               }
@@ -2373,24 +2389,19 @@ router.get("/exportar-respuestas", async (req, res) => {
                   respuestaCorrecta = "Respuesta libre.";
                   break;
                 case "Opción múltiple":
-                  respuestaUsuario;
-                  respuestaCorrecta;
+                  respuestaUsuario = question.userAnswer
+                    .filter((answer) => answer.seleccionada)
+                    .map((answer) => answer.respuesta)
+                    .join(", ");
+                  respuestaCorrecta = question.correctAnswer
+                    .filter((answer) => answer.correcta)
+                    .map((answer) => answer.respuesta)
+                    .join(", ");
                   break;
                 case "Intervalo numérico":
-                  // Ejemplo del formato de la respuesta del usuario
-                  /*
-                    question.userAnswer = [{"valor":"35.11","intervalo":[0,0]}]
-                  */
-                  // Por lo tanto, filtramos solo el valor
                   respuestaUsuario = question.userAnswer.at(0)
                     ? parseFloat(question.userAnswer.at(0).valor)
                     : "Vacío";
-
-                  // Ejemplo del formato de la respuesta correcta
-                  /*
-                    question.correctAnswer = [{"valor":0,"intervalo":[35,35.2]}]
-                  */
-                  // Por lo tanto, filtramos solo el intervalo
                   let limiteInferior = parseFloat(question.correctAnswer.at(0).intervalo.at(0));
                   let limiteSuperior = parseFloat(question.correctAnswer.at(0).intervalo.at(1));
                   respuestaCorrecta = `Correcto de ${limiteInferior} a ${limiteSuperior}`;
@@ -2400,8 +2411,218 @@ router.get("/exportar-respuestas", async (req, res) => {
                   respuestaCorrecta;
                   break;
                 case "Interactiva secuencial":
-                  respuestaUsuario;
-                  respuestaCorrecta;
+                  for (const subQuestion of question.userAnswer) {
+                    let subRespuestaUsuario = "";
+                    let subRespuestaCorrecta = "";
+
+                    const subQuestionIds = [
+                      subQuestion.pregunta_hijo,
+                      subQuestion.pregunta_correcta,
+                      subQuestion.pregunta_incorrecta,
+                    ];
+
+                    for (const subQuestionId of subQuestionIds) {
+                      const subQuestionData = await QuestionModel.findById(subQuestionId);
+
+                      if (!subQuestionData) {
+                        continue;
+                      }
+
+                      let subRespuestaUsuario = "";
+                      let subRespuestaCorrecta = "";
+
+                      switch (subQuestionData.typeOfQuestion) {
+                        case "Abierta":
+                          subRespuestaUsuario = subQuestion[subQuestionId];
+                          subRespuestaCorrecta = "Respuesta libre.";
+                          break;
+                        case "Opción múltiple":
+                          respuestaUsuario = question.userAnswer
+                            .filter((answer) => answer.seleccionada)
+                            .map((answer) => answer.respuesta)
+                            .join(", ");
+                          respuestaCorrecta = question.correctAnswer
+                            .filter((answer) => answer.correcta)
+                            .map((answer) => answer.respuesta)
+                            .join(", ");
+                          break;
+                        case "Intervalo numérico":
+                          subRespuestaUsuario = subQuestion[subQuestionId]
+                            ? parseFloat(subQuestion[subQuestionId].valor)
+                            : "Vacío";
+                          let subLimiteInferior = parseFloat(
+                            subQuestionData.correctAnswer.at(0).intervalo.at(0)
+                          );
+                          let subLimiteSuperior = parseFloat(
+                            subQuestionData.correctAnswer.at(0).intervalo.at(1)
+                          );
+                          subRespuestaCorrecta = `Correcto de ${subLimiteInferior} a ${subLimiteSuperior}`;
+                          break;
+                        case "Varias preguntas":
+                          subRespuestaUsuario;
+                          subRespuestaCorrecta;
+                          break;
+                        case "Interactiva secuencial":
+                          subRespuestaUsuario;
+                          subRespuestaCorrecta;
+                          break;
+                        case "Completar un texto":
+                          subRespuestaUsuario;
+                          subRespuestaCorrecta;
+                          break;
+                        case "Llenar datos y graficar":
+                          subRespuestaUsuario;
+                          subRespuestaCorrecta;
+                          break;
+                        case "Completar número en tabla":
+                          let subRespuestaUsuarioSinFormatear = null;
+                          if (subQuestion[subQuestionId]) {
+                            let subRespuestasACompletar = subQuestion[subQuestionId].flatMap(
+                              (fila) => {
+                                return fila.filter((celda) => celda.completar === true);
+                              }
+                            );
+                            subRespuestaUsuarioSinFormatear = subRespuestasACompletar;
+                          } else {
+                            subRespuestaUsuarioSinFormatear = subQuestion[subQuestionId];
+                          }
+                          subRespuestaUsuario = subRespuestaUsuarioSinFormatear
+                            ? subRespuestaUsuarioSinFormatear.flatMap(
+                                (subRespuestaCorrectaUsuario) =>
+                                  subRespuestaCorrectaUsuario.respuesta
+                              )
+                            : "Vacío";
+                          subRespuestaCorrecta = subQuestionData.correctAnswer.flatMap(
+                            (subRespuestaCorrecta) => subRespuestaCorrecta.respuesta
+                          );
+                          break;
+                        case "Video interactivo con preguntas":
+                          subRespuestaUsuario;
+                          subRespuestaCorrecta;
+                          break;
+                        case "Secuencia de pasos":
+                          subRespuestaUsuario;
+                          subRespuestaCorrecta;
+                          break;
+                        default:
+                          subRespuestaUsuario = "To default switch case";
+                          subRespuestaCorrecta = "To default switch case";
+                          break;
+                      }
+
+                      // Add sub-question records to the main records array
+                      records.push({
+                        courseId: answer.idCourse,
+                        nombreCurso: cursoData?.nombre || "Sin nombre",
+                        usuarioId: usuario._id,
+                        nombre: usuario.nombre,
+                        seccionId: section.idSection,
+                        nombreSeccion: seccionData?.name || "Sin nombre",
+                        taskId: task.idTask,
+                        nombreTask: taskData?.name || "Sin nombre",
+                        questionId: question.idQuestion,
+                        nombreQuestion: questionData?.question || "Sin nombre",
+                        subQuestionId: subQuestionId,
+                        subNombreQuestion: subQuestionData.question || "Sin nombre",
+                        userAnswer: subRespuestaUsuario,
+                        correctAnswer: subRespuestaCorrecta,
+                        totalScore: subQuestionData.totalScore,
+                        answeredScore: subQuestionData.answeredScore,
+                      });
+                    }
+
+                    // switch (subQuestion.typeOfQuestion) {
+                    //   case "Abierta":
+                    //     subRespuestaUsuario = subQuestion.userAnswer;
+                    //     subRespuestaCorrecta = "Respuesta libre.";
+                    //     break;
+                    //   case "Opción múltiple":
+                    //     subRespuestaUsuario;
+                    //     subRespuestaCorrecta;
+                    //     break;
+                    //   case "Intervalo numérico":
+                    //     subRespuestaUsuario = subQuestion.userAnswer.at(0)
+                    //       ? parseFloat(subQuestion.userAnswer.at(0).valor)
+                    //       : "Vacío";
+                    //     let subLimiteInferior = parseFloat(
+                    //       subQuestion.correctAnswer.at(0).intervalo.at(0)
+                    //     );
+                    //     let subLimiteSuperior = parseFloat(
+                    //       subQuestion.correctAnswer.at(0).intervalo.at(1)
+                    //     );
+                    //     subRespuestaCorrecta = `Correcto de ${subLimiteInferior} a ${subLimiteSuperior}`;
+                    //     break;
+                    //   case "Varias preguntas":
+                    //     subRespuestaUsuario;
+                    //     subRespuestaCorrecta;
+                    //     break;
+                    //   case "Interactiva secuencial":
+                    //     subRespuestaUsuario;
+                    //     subRespuestaCorrecta;
+                    //     break;
+                    //   case "Completar un texto":
+                    //     subRespuestaUsuario;
+                    //     subRespuestaCorrecta;
+                    //     break;
+                    //   case "Llenar datos y graficar":
+                    //     subRespuestaUsuario;
+                    //     subRespuestaCorrecta;
+                    //     break;
+                    //   case "Completar número en tabla":
+                    //     let subRespuestaUsuarioSinFormatear = null;
+                    //     if (subQuestion.userAnswer) {
+                    //       let subRespuestasACompletar = subQuestion.userAnswer.flatMap((fila) => {
+                    //         return fila.filter((celda) => celda.completar === true);
+                    //       });
+                    //       subRespuestaUsuarioSinFormatear = subRespuestasACompletar;
+                    //     } else {
+                    //       subRespuestaUsuarioSinFormatear = subQuestion.userAnswer;
+                    //     }
+                    //     subRespuestaUsuario = subRespuestaUsuarioSinFormatear
+                    //       ? subRespuestaUsuarioSinFormatear.flatMap(
+                    //           (subRespuestaCorrectaUsuario) => subRespuestaCorrectaUsuario.respuesta
+                    //         )
+                    //       : "Vacío";
+                    //     subRespuestaCorrecta = subQuestion.correctAnswer.flatMap(
+                    //       (subRespuestaCorrecta) => subRespuestaCorrecta.respuesta
+                    //     );
+                    //     break;
+                    //   case "Video interactivo con preguntas":
+                    //     subRespuestaUsuario;
+                    //     subRespuestaCorrecta;
+                    //     break;
+                    //   case "Secuencia de pasos":
+                    //     subRespuestaUsuario;
+                    //     subRespuestaCorrecta;
+                    //     break;
+                    //   default:
+                    //     subRespuestaUsuario = "To default switch case";
+                    //     subRespuestaCorrecta = "To default switch case";
+                    //     break;
+                    // }
+
+                    // // Add sub-question records to the main records array
+                    // records.push({
+                    //   courseId: answer.idCourse,
+                    //   nombreCurso: cursoData?.nombre || "Sin nombre",
+                    //   usuarioId: usuario._id,
+                    //   nombre: usuario.nombre,
+                    //   seccionId: section.idSection,
+                    //   nombreSeccion: seccionData?.name || "Sin nombre",
+                    //   taskId: task.idTask,
+                    //   nombreTask: taskData?.name || "Sin nombre",
+                    //   questionId: question.idQuestion,
+                    //   nombreQuestion: questionData?.question || "Sin nombre",
+                    //   subQuestionId: subQuestion.idQuestion,
+                    //   subNombreQuestion: subQuestion.question || "Sin nombre",
+                    //   userAnswer: subRespuestaUsuario,
+                    //   correctAnswer: subRespuestaCorrecta,
+                    //   totalScore: subQuestion.totalScore,
+                    //   answeredScore: subQuestion.answeredScore,
+                    // });
+                  }
+                  // respuestaUsuario;
+                  // respuestaCorrecta;
                   break;
                 case "Completar un texto":
                   respuestaUsuario;
@@ -2414,7 +2635,6 @@ router.get("/exportar-respuestas", async (req, res) => {
                 case "Completar número en tabla":
                   let respuestaUsuarioSinFormatear = null;
                   if (question.userAnswer) {
-                    // Recorremos el la lista de arreglos con objetos de tipo celda y la filtramos según los que se deben de completar
                     let respuestasACompletar = question.userAnswer.flatMap((fila) => {
                       return fila.filter((celda) => celda.completar === true);
                     });
@@ -2445,18 +2665,20 @@ router.get("/exportar-respuestas", async (req, res) => {
                   break;
               }
 
-              // Añadir el registro con los nombres de sección, actividad y pregunta
+              // Añadir el registro con los nombres de curso, sección, actividad y pregunta
               records.push({
+                courseId: answer.idCourse,
+                nombreCurso: cursoData?.nombre || "Sin nombre",
                 usuarioId: usuario._id,
-                nombre: usuario.nombre, // Nombre del usuario
+                nombre: usuario.nombre,
                 seccionId: section.idSection,
-                nombreSeccion: seccionData?.name || "Sin nombre", // Nombre de la sección
+                nombreSeccion: seccionData?.name || "Sin nombre",
                 taskId: task.idTask,
-                nombreTask: taskData?.name || "Sin nombre", // Nombre de la actividad
+                nombreTask: taskData?.name || "Sin nombre",
                 questionId: question.idQuestion,
-                nombreQuestion: questionData?.question || "Sin nombre", // Nombre de la pregunta
+                nombreQuestion: questionData?.question || "Sin nombre",
                 userAnswer: respuestaUsuario,
-                correctAnswer: respuestaCorrecta, // Convertir respuesta correcta a string si es necesario
+                correctAnswer: respuestaCorrecta,
                 totalScore: question.totalScore,
                 answeredScore: question.answeredScore,
               });
@@ -2468,16 +2690,18 @@ router.get("/exportar-respuestas", async (req, res) => {
 
     // Generar el CSV en memoria
     const csvData = stringify(records, {
-      header: true, // Incluir el encabezado
+      header: true,
       columns: [
+        { key: "courseId", header: "Course ID" },
+        { key: "nombreCurso", header: "Course Name" },
         { key: "usuarioId", header: "Usuario ID" },
         { key: "nombre", header: "Nombre Usuario" },
         { key: "seccionId", header: "Sección ID" },
-        { key: "nombreSeccion", header: "Nombre Sección" }, // Nueva columna de nombre de sección
+        { key: "nombreSeccion", header: "Nombre Sección" },
         { key: "taskId", header: "Task ID" },
-        { key: "nombreTask", header: "Nombre Actividad" }, // Nueva columna de nombre de actividad
+        { key: "nombreTask", header: "Nombre Actividad" },
         { key: "questionId", header: "Pregunta ID" },
-        { key: "nombreQuestion", header: "Nombre Pregunta" }, // Nueva columna de nombre de pregunta
+        { key: "nombreQuestion", header: "Nombre Pregunta" },
         { key: "userAnswer", header: "Respuesta del Usuario" },
         { key: "correctAnswer", header: "Respuesta Correcta" },
         { key: "totalScore", header: "Puntuación Total" },
@@ -2486,7 +2710,7 @@ router.get("/exportar-respuestas", async (req, res) => {
     });
 
     // Agregar una cabecera para la codificación UTF-8
-    const bom = "\uFEFF"; // Byte Order Mark para UTF-8
+    const bom = "\uFEFF";
     const csvWithBom = bom + csvData;
 
     // Configurar la respuesta para descarga
@@ -2498,3 +2722,180 @@ router.get("/exportar-respuestas", async (req, res) => {
     res.status(500).json({ message: "Error al exportar respuestas" });
   }
 });
+
+// router.get("/exportar-respuestas", async (req, res) => {
+//   try {
+//     // Busca usuarios y asegura que estás poblado adecuadamente las relaciones
+//     const usuarios = await UserModel.find().populate({
+//       path: "answers",
+//       populate: {
+//         path: "sections",
+//         populate: {
+//           path: "tasks",
+//           populate: {
+//             path: "questions",
+//           },
+//         },
+//       },
+//     });
+
+//     // Definir los registros que se exportarán
+//     const records = [];
+
+//     // Usar bucle for...of para manejar las operaciones async
+//     for (const usuario of usuarios) {
+//       for (const answer of usuario.answers) {
+//         for (const section of answer.sections) {
+//           // Busca el nombre de la sección
+//           const seccionData = await SectionModel.findById(section.idSection).select("name");
+
+//           for (const task of section.tasks) {
+//             // Busca el nombre de la actividad (task)
+//             const taskData = await TaskModel.findById(task.idTask).select("name");
+
+//             for (const question of task.questions) {
+//               // Busca el nombre de la pregunta
+//               const questionData = await QuestionModel.findById(question.idQuestion, "question");
+//               // Busca el tipo de la pregunta
+//               let typeOfQuestionObj = await QuestionModel.findById(
+//                 question.idQuestion,
+//                 "typeOfQuestion"
+//               );
+//               console.log(`typeOfQuestionObj: `, typeOfQuestionObj);
+//               if (typeOfQuestionObj == null) {
+//                 typeOfQuestionObj = { typeOfQuestion: "To default switch case" };
+//               }
+//               // Filtramos lo que se muestra en la columna de Respuesta del usuario y respuesta correcta según el tipo de pregunta
+//               let respuestaUsuario = "";
+//               let respuestaCorrecta = "";
+//               switch (typeOfQuestionObj.typeOfQuestion) {
+//                 case "Abierta":
+//                   respuestaUsuario = question.userAnswer;
+//                   respuestaCorrecta = "Respuesta libre.";
+//                   break;
+//                 case "Opción múltiple":
+//                   respuestaUsuario;
+//                   respuestaCorrecta;
+//                   break;
+//                 case "Intervalo numérico":
+//                   // Ejemplo del formato de la respuesta del usuario
+//                   /*
+//                     question.userAnswer = [{"valor":"35.11","intervalo":[0,0]}]
+//                   */
+//                   // Por lo tanto, filtramos solo el valor
+//                   respuestaUsuario = question.userAnswer.at(0)
+//                     ? parseFloat(question.userAnswer.at(0).valor)
+//                     : "Vacío";
+
+//                   // Ejemplo del formato de la respuesta correcta
+//                   /*
+//                     question.correctAnswer = [{"valor":0,"intervalo":[35,35.2]}]
+//                   */
+//                   // Por lo tanto, filtramos solo el intervalo
+//                   let limiteInferior = parseFloat(question.correctAnswer.at(0).intervalo.at(0));
+//                   let limiteSuperior = parseFloat(question.correctAnswer.at(0).intervalo.at(1));
+//                   respuestaCorrecta = `Correcto de ${limiteInferior} a ${limiteSuperior}`;
+//                   break;
+//                 case "Varias preguntas":
+//                   respuestaUsuario;
+//                   respuestaCorrecta;
+//                   break;
+//                 case "Interactiva secuencial":
+//                   respuestaUsuario;
+//                   respuestaCorrecta;
+//                   break;
+//                 case "Completar un texto":
+//                   respuestaUsuario;
+//                   respuestaCorrecta;
+//                   break;
+//                 case "Llenar datos y graficar":
+//                   respuestaUsuario;
+//                   respuestaCorrecta;
+//                   break;
+//                 case "Completar número en tabla":
+//                   let respuestaUsuarioSinFormatear = null;
+//                   if (question.userAnswer) {
+//                     // Recorremos el la lista de arreglos con objetos de tipo celda y la filtramos según los que se deben de completar
+//                     let respuestasACompletar = question.userAnswer.flatMap((fila) => {
+//                       return fila.filter((celda) => celda.completar === true);
+//                     });
+//                     respuestaUsuarioSinFormatear = respuestasACompletar;
+//                   } else {
+//                     respuestaUsuarioSinFormatear = question.userAnswer;
+//                   }
+//                   respuestaUsuario = respuestaUsuarioSinFormatear
+//                     ? respuestaUsuarioSinFormatear.flatMap(
+//                         (respuestaCorrectaUsuario) => respuestaCorrectaUsuario.respuesta
+//                       )
+//                     : "Vacío";
+//                   respuestaCorrecta = question.correctAnswer.flatMap(
+//                     (respuestaCorrecta) => respuestaCorrecta.respuesta
+//                   );
+//                   break;
+//                 case "Video interactivo con preguntas":
+//                   respuestaUsuario;
+//                   respuestaCorrecta;
+//                   break;
+//                 case "Secuencia de pasos":
+//                   respuestaUsuario;
+//                   respuestaCorrecta;
+//                   break;
+//                 default:
+//                   respuestaUsuario = "To default switch case";
+//                   respuestaCorrecta = "To default switch case";
+//                   break;
+//               }
+
+//               // Añadir el registro con los nombres de sección, actividad y pregunta
+//               records.push({
+//                 usuarioId: usuario._id,
+//                 nombre: usuario.nombre, // Nombre del usuario
+//                 seccionId: section.idSection,
+//                 nombreSeccion: seccionData?.name || "Sin nombre", // Nombre de la sección
+//                 taskId: task.idTask,
+//                 nombreTask: taskData?.name || "Sin nombre", // Nombre de la actividad
+//                 questionId: question.idQuestion,
+//                 nombreQuestion: questionData?.question || "Sin nombre", // Nombre de la pregunta
+//                 userAnswer: respuestaUsuario,
+//                 correctAnswer: respuestaCorrecta, // Convertir respuesta correcta a string si es necesario
+//                 totalScore: question.totalScore,
+//                 answeredScore: question.answeredScore,
+//               });
+//             }
+//           }
+//         }
+//       }
+//     }
+
+//     // Generar el CSV en memoria
+//     const csvData = stringify(records, {
+//       header: true, // Incluir el encabezado
+//       columns: [
+//         { key: "usuarioId", header: "Usuario ID" },
+//         { key: "nombre", header: "Nombre Usuario" },
+//         { key: "seccionId", header: "Sección ID" },
+//         { key: "nombreSeccion", header: "Nombre Sección" }, // Nueva columna de nombre de sección
+//         { key: "taskId", header: "Task ID" },
+//         { key: "nombreTask", header: "Nombre Actividad" }, // Nueva columna de nombre de actividad
+//         { key: "questionId", header: "Pregunta ID" },
+//         { key: "nombreQuestion", header: "Nombre Pregunta" }, // Nueva columna de nombre de pregunta
+//         { key: "userAnswer", header: "Respuesta del Usuario" },
+//         { key: "correctAnswer", header: "Respuesta Correcta" },
+//         { key: "totalScore", header: "Puntuación Total" },
+//         { key: "answeredScore", header: "Puntuación Respondida" },
+//       ],
+//     });
+
+//     // Agregar una cabecera para la codificación UTF-8
+//     const bom = "\uFEFF"; // Byte Order Mark para UTF-8
+//     const csvWithBom = bom + csvData;
+
+//     // Configurar la respuesta para descarga
+//     res.setHeader("Content-Disposition", "attachment; filename=respuestas_usuarios.csv");
+//     res.setHeader("Content-Type", "text/csv; charset=utf-8");
+//     res.status(200).send(csvWithBom);
+//   } catch (error) {
+//     console.error("Error al exportar respuestas:", error);
+//     res.status(500).json({ message: "Error al exportar respuestas" });
+//   }
+// });

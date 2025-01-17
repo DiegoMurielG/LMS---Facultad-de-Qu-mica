@@ -17,6 +17,13 @@ export default function InputBuscador({
   setElementosSeleccionados,
   aQuienAsignamos,
   queBuscamos,
+  // Booleano utilizado cuando se desea permitir seleccionar solo 1 pregunta
+  // Se utiliza en el tipo de preguntas 5: <RespuestaInteractivaSecuencial />
+  buscarSoloUnaPregunta = false,
+
+  // Booleano que se utiliza para mostrar la pregunta buscada
+  // Se utiliza en el tipo de preguntas 5: <RespuestaInteractivaSecuencial />
+  renderizarPreguntaBuscada = false,
 }) {
   // const navigate = Navigate();
   // const [elementosSeleccionados, setElementosSeleccionados] = useState([]);
@@ -38,7 +45,15 @@ export default function InputBuscador({
     });
 
     if (!elementoEstaSeleccionado) {
-      setElementosSeleccionados([...elementosSeleccionados, elemento]);
+      // Si se desea buscar solo 1 pregunta
+      if (buscarSoloUnaPregunta) {
+        // Solo se puede agregar la pregunta si no hemos hagregado una anteriormente
+        if (elementosSeleccionados.length < 1) {
+          setElementosSeleccionados([...elementosSeleccionados, elemento]);
+        }
+      } else {
+        setElementosSeleccionados([...elementosSeleccionados, elemento]);
+      }
     } else {
       Swal.fire({
         title: `El ${queBuscamos} ${elemento.nombre} ya fué asignado al ${aQuienAsignamos}`,

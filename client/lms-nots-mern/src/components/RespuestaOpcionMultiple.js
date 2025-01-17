@@ -134,7 +134,7 @@ export default function RespuestaOpcionMultiple({
                               // value=""
                               onChange={(e) => handleActualizarRespuesta(e, index)}
                             />
-                            <label className="form-check-label" for="flexCheckDefault">
+                            <label className="form-check-label" htmlFor="flexCheckDefault">
                               {respuesta.respuesta}
                             </label>
                           </div>

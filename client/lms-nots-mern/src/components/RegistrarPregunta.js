@@ -15,7 +15,14 @@ import RespuestaIntervaloNumerico from "./RespuestaIntervaloNumerico";
 import { json } from "react-router-dom";
 import RespuestaInteractivaSecuencial from "./RespuestaInteractivaSecuencial";
 
-export default function RegistrarPregunta({ handleSubmitExterno = null }) {
+export default function RegistrarPregunta({
+  handleSubmitExterno = null,
+  adding_childern_question = false,
+  question = null,
+  setQuestion = null,
+  registrandoPregunta = null,
+  setRegistrandoPregunta = null,
+}) {
   // { actividades = [] }
   // Hacer un formulario para registrar una pregunta, asignarla a una sección y mostrarla hasta abajo (Ver Secciones, Ver Actividades y Ver Preguntas)
   let pregunta = {
@@ -78,6 +85,9 @@ export default function RegistrarPregunta({ handleSubmitExterno = null }) {
   const [numeroColumnas, setNumeroColumnas] = useState(2);
   const [numeroFilas, setNumeroFilas] = useState(2);
 
+  // Lista de objetos de pregunta hijo, para el tipo de pregunta 5: Interactiva secuencial (<RespuestaInteractivaSecuencial />)
+  const [listaPreguntasHijo, setListaPreguntasHijo] = useState([]);
+
   // const [respuestaAMostrar, setRespuestaAMostrar] = useState(<></>);
 
   // const dictTiposRespuesta = {
@@ -106,6 +116,87 @@ export default function RegistrarPregunta({ handleSubmitExterno = null }) {
     withCredentials: true, // Si necesitas enviar cookies
   });
   // axios.defaults.withCredentials = true;
+
+  // Para actualizar answers y correctAnswers cuando listaPreguntasHijo cambie
+  useEffect(() => {
+    async function actualizarCorrectAnswersParaInteractivaSecuencial() {
+      const tmpAnswers = listaPreguntasHijo.map((preguntaHijo) => {
+        preguntaHijo[preguntaHijo.id_pregunta_hijo] = "";
+        preguntaHijo[preguntaHijo.id_pregunta_correcta] = "";
+        preguntaHijo[preguntaHijo.id_pregunta_incorrecta] = "";
+        return preguntaHijo;
+      });
+      setAnswers(tmpAnswers);
+
+      // Reccoremos la lista de preguntas hijo y guardamos la respuesta correcta esperada (la que puso el profesor contra la que se comprara la respuesta del alumno) de la pregunta hijo y de la pregunta correcta dentro de un arreglo como dice en Question.js (correctAnswer: [])
+      // No guardamos la respuesta esperada de la pregunta incorrecta porque no nos interesa evaluar esa pregunta
+      let tmpCorrectAnswers = [];
+      tmpCorrectAnswers = await Promise.all(
+        listaPreguntasHijo.map(async (obj_pregunta_hijo) => {
+          const tmpCorrectAnswer = {
+            id_pregunta_hijo: obj_pregunta_hijo["id_pregunta_hijo"],
+            id_pregunta_correcta: obj_pregunta_hijo["id_pregunta_correcta"],
+          };
+
+          // Buscamos la pregunta hijo en la DB y guardamos la respuesta correcta esperada
+          try {
+            const response = await api.post("/buscar-preguntas", {
+              palabra_a_buscar: `#: ${obj_pregunta_hijo["id_pregunta_hijo"]}`,
+            });
+            if (response.data.Status === 607 && response.data.docs[0]) {
+              const pregunta_encontrada = response.data.docs[0];
+              const nombreTmp = obj_pregunta_hijo["id_pregunta_hijo"];
+              tmpCorrectAnswer[nombreTmp] = pregunta_encontrada.correctAnswer;
+            }
+          } catch (error) {
+            console.error(
+              `Error buscando la pregunta hijo ${obj_pregunta_hijo["id_pregunta_hijo"]}.\n${error}`
+            );
+          }
+
+          // Buscamos la pregunta correcta en la DB y guardamos la respuesta correcta esperada
+          try {
+            const response = await api.post("/buscar-preguntas", {
+              palabra_a_buscar: `#: ${obj_pregunta_hijo["id_pregunta_correcta"]}`,
+            });
+            if (response.data.Status === 607 && response.data.docs[0]) {
+              const pregunta_encontrada = response.data.docs[0];
+              const nombreTmp = obj_pregunta_hijo["id_pregunta_correcta"];
+              tmpCorrectAnswer[nombreTmp] = pregunta_encontrada.correctAnswer;
+            }
+          } catch (error) {
+            console.error(
+              `Error buscando la pregunta correcta ${obj_pregunta_hijo["id_pregunta_correcta"]}.\n${error}`
+            );
+          }
+
+          return tmpCorrectAnswer;
+        })
+      );
+      console.log(`answers:\n${JSON.stringify(tmpAnswers)}`);
+      console.log(`correctAnswers:\n${JSON.stringify(tmpCorrectAnswers)}`);
+      // setCorrectAnswers((prevCorrectAnswers) => [...tmpCorrectAnswers]);
+      setCorrectAnswers(tmpCorrectAnswers);
+      actualizar_correct_answers_y_answers = false;
+    }
+    // Bandera que indica el momento en el cuál se puede o no actualizar correctAnswers y answers según si la lista de preguntas hijo esta "completa" o no, es decir, que todas las preguntas hijo existentes tengan una pregunta correcta e incorrecta asignada
+    let actualizar_correct_answers_y_answers = false;
+    listaPreguntasHijo.forEach((obj_pregunta_hijo) => {
+      if (
+        obj_pregunta_hijo.id_pregunta_hijo != "" &&
+        obj_pregunta_hijo.id_pregunta_correcta != "" &&
+        obj_pregunta_hijo.id_pregunta_incorrecta != ""
+      ) {
+        actualizar_correct_answers_y_answers = true;
+      } else {
+        actualizar_correct_answers_y_answers = false;
+        return;
+      }
+    });
+    if (actualizar_correct_answers_y_answers) {
+      actualizarCorrectAnswersParaInteractivaSecuencial();
+    }
+  }, [listaPreguntasHijo]);
 
   // useEffect para actualizar correctAnswers cuando listaRespuestas cambie
   useEffect(() => {
@@ -149,9 +240,12 @@ export default function RegistrarPregunta({ handleSubmitExterno = null }) {
         return listaRespuestasCorrectas;
       });
     }
-  }, [listaRespuestas, tipoPregunta, listaElementosTabla]);
+    // else if (tipoPreguntaDict[tipoPregunta] === "Interactiva secuencial") {
+    //   actualizarCorrectAnswersParaInteractivaSecuencial();
+    // }
+  }, [listaRespuestas, tipoPregunta, listaElementosTabla]); //, listaPreguntasHijo
 
-  const construirPregunta = () => {
+  const construirPregunta = async () => {
     // Colocar el tipo de dato que se guardará en "answers" según el tipo de respuesta que crearemos:
     // Colocar qué guardará el arreglo de respuestas correctas para marcar la respuesta como completada según su tipo
     if (tipoPreguntaDict[tipoPregunta] === "Abierta") {
@@ -193,12 +287,12 @@ export default function RegistrarPregunta({ handleSubmitExterno = null }) {
       alert(
         "Por definir el tipo de dato de 'answers' y 'correctAnswers' en pregunta del tipo: Varias preguntas"
       );
-      setAnswers("");
-      setCorrectAnswers(["Algo"]);
     } else if (tipoPreguntaDict[tipoPregunta] === "Interactiva secuencial") {
-      alert(
-        "Por definir el tipo de dato de 'answers' en pregunta del tipo: Interactiva secuencial"
-      );
+      // alert(
+      //   "Por definir el tipo de dato de 'answers' en pregunta del tipo: Interactiva secuencial"
+      // );
+      // setAnswers("");
+      // setCorrectAnswers(["Algo"]);
     } else if (tipoPreguntaDict[tipoPregunta] === "Completar un texto") {
       alert(
         "Por definir el tipo de dato de 'answers' y 'correctAnswers' en pregunta del tipo: Completar un texto"
@@ -379,10 +473,9 @@ export default function RegistrarPregunta({ handleSubmitExterno = null }) {
           : idContenidoPosterior != ""
           ? [idContenidoPosterior]
           : [],
-      questions: [],
+      questions: listaPreguntasHijo,
     };
 
-    console.log(JSON.stringify(pregunta));
   };
 
   // useEffect(() => {
@@ -401,11 +494,12 @@ export default function RegistrarPregunta({ handleSubmitExterno = null }) {
   //   idContenidoPosterior,
   // ]);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     alert("Registrando pregunta...");
 
-    construirPregunta();
+    await construirPregunta();
+    console.log(`pregunta: ${JSON.stringify(pregunta)}`);
     let respuestaRegistrarPregunta = "";
     api
       .post("/registrar-pregunta", {
@@ -425,21 +519,32 @@ export default function RegistrarPregunta({ handleSubmitExterno = null }) {
       })
       .then((response) => {
         if (response.data.Status === 605) {
-          pregunta._id = response.data.content_id;
+          // Clona la pregunta y establece el _id de forma explícita
+          const nuevaPregunta = { ...pregunta, _id: response.data.content_id };
           // console.log(pregunta._id);
           // respuestaRegistrarPregunta = response.data.message;
           // Registrar pregunta en las actividades selecciondas si la asignamos a algunas actividades existentes mediante el InputBuscador de actividades
-          pregunta.idTask.forEach((id_actividad) => {
+          nuevaPregunta.idTask.forEach((id_actividad) => {
             api
               .post("/aniadir-pregunta-a-actividad", {
                 id_actividad: id_actividad,
-                id_pregunta: pregunta._id,
-                pregunta_totalScore: pregunta.totalScore,
+                id_pregunta: nuevaPregunta._id,
+                pregunta_totalScore: nuevaPregunta.totalScore,
               })
               .catch((error) => {
                 console.error(`Error actualizando la actividad ${id_actividad}.\n${error}`);
               });
           });
+
+          // Para las preguntas de tipo 5: interactiva-secuencial que utilizan este componente para registrar preguntas (preguntas hijo, correctas e incorrectas).
+          // Si se está añadiendo una pregunta hijo, entonces regresamos la pregunta
+          if (adding_childern_question) {
+            console.log(`nuevaPregunta:`, JSON.stringify(nuevaPregunta));
+            setQuestion(nuevaPregunta);
+          }
+
+          // Reset del formulario
+          resetForm();
 
           Swal.fire({
             title: response.data.message,
@@ -447,9 +552,6 @@ export default function RegistrarPregunta({ handleSubmitExterno = null }) {
             showCancelButton: false,
             icon: "success",
           });
-
-          // Reset del formulario
-          resetForm();
         } else {
           Swal.fire({
             title: response.data.message,
@@ -521,6 +623,7 @@ export default function RegistrarPregunta({ handleSubmitExterno = null }) {
     setListaRespuestas([]);
     setListaElementosTabla([]);
     setValorPuntosPregunta(0);
+    // setListaPreguntasHijo([]);
   };
 
   const handleBuscarActividades = (e) => {
@@ -583,7 +686,7 @@ export default function RegistrarPregunta({ handleSubmitExterno = null }) {
   // Contenido del formulario sin la etiqueta <form />
   const contenidoFormularioRespuesta = (
     <>
-      <div className="mb-3">
+      <div className={adding_childern_question ? "d-none" : "d-block mb-3"}>
         <InputBuscador
           name={"actividadesBuscadas"}
           id={"floatingInput-actividades"}
@@ -610,8 +713,9 @@ export default function RegistrarPregunta({ handleSubmitExterno = null }) {
           onChange={(e) => {
             // setTipoPregunta(tipoPreguntaDict[Number(e.target.value)]);
             setTipoPregunta(Number(e.target.value));
-          }}>
-          <option value={""} disabled selected>
+          }}
+          defaultValue={"default"}>
+          <option value={"default"} disabled>
             Eliga el tipo de pregunta que añadirá...
           </option>
           <option value="1">
@@ -830,7 +934,10 @@ export default function RegistrarPregunta({ handleSubmitExterno = null }) {
             <></>
           )}
           {tipoPregunta === 5 ? (
-            <RespuestaInteractivaSecuencial />
+            <RespuestaInteractivaSecuencial
+              listaPreguntasHijo={listaPreguntasHijo}
+              setListaPreguntasHijo={setListaPreguntasHijo}
+            />
           ) : (
             // <>
             //   <p>Por completar</p>
@@ -929,12 +1036,38 @@ export default function RegistrarPregunta({ handleSubmitExterno = null }) {
       <button
         type={handleSubmitExterno ? "button" : "submit"}
         onClick={(e) => {
-          if (handleSubmitExterno) {
+          // En el caso en el que se esté reigistrando una "pregunta hijo" para el tipo de pregunta de "Interactiva Secuencial", reutilizamos la función para guardar una pregunta "handleSubmit(e)"
+          // De esta forma evitamos tener un <form /> dentro de otro <form /> y a la vez reutilizamos código ya existente
+          if (
+            handleSubmitExterno &&
+            setRegistrandoPregunta &&
+            setQuestion &&
+            handleSubmitExterno === "registrando-pregunta-hijo"
+          ) {
+            // Guardamos la pregunta en la DB
+            handleSubmit(e);
+
+            // Guardamos la pregunta en el componente de <RespuestaInteractivaSecuencial />
+            setQuestion(pregunta);
+
+            // Cambiamos el valor de registrandoPregunta a false para ocultar el componente de <RegistrarPregunta />
+            setRegistrandoPregunta(false);
+
+            // Si no se está registrando una pregunta tipo hijo, se utiliza la función que se proporcionó para el evento de "submit" (que en realidad es solo un click) del botón
+          } else if (handleSubmitExterno) {
             handleSubmitExterno(e);
           }
         }}
-        className="btn btn-success my-3 w-100 btn-lg">
-        Añadir pregunta
+        className={
+          adding_childern_question
+            ? "btn btn-primary my-3 w-100 btn-lg"
+            : "btn btn-success my-3 w-100 btn-lg"
+        }>
+        {adding_childern_question ? (
+          <p className="m-0">Crear y añadir pregunta hijo</p>
+        ) : (
+          <p className="m-0">Añadir pregunta</p>
+        )}
       </button>
     </>
   );
@@ -942,7 +1075,11 @@ export default function RegistrarPregunta({ handleSubmitExterno = null }) {
   return (
     <div className="container w-100 d-flex flex-column justify-content-center align-items-center mb-5">
       <div className="d-flex justify-content-center align-items-center">
-        <h2 className="mb-3 me-3">Añadir pregunta</h2>
+        {adding_childern_question ? (
+          <h2 className="mb-3 me-3">Añadir pregunta hijo</h2>
+        ) : (
+          <h2 className="mb-3 me-3">Añadir pregunta</h2>
+        )}
         <svg
           xmlns="http://www.w3.org/2000/svg"
           width="1em"

@@ -27,7 +27,7 @@ export default function ButtonToggleView({
   buscarActividad,
 
   // Dentro de <EditarSecciones />
-  rerenderPorActualizacionDeDatos = null,
+  rerenderPorActualizacionDeDatos = false,
   setRerenderPorActualizacionDeDatos = null,
 
   // Dentro de <RenderCurso />
@@ -214,7 +214,7 @@ export default function ButtonToggleView({
     } else {
       setLista_data_contenido([<h2 key={1}>{mensajeVacio}</h2>]);
     }
-  }, [data_contenidos, rerenderPorActualizacionDeDatos, contenidosSeVen]);
+  }, [data_contenidos, contenidosSeVen]); // rerenderPorActualizacionDeDatos,
 
   return (
     <div className="contanier w-100 d-flex flex-column justify-content-center align-items-center rounded-3 overflow-hidden">
