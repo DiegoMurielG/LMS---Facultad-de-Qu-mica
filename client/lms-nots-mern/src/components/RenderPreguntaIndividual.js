@@ -117,7 +117,7 @@ export default function RenderPreguntaIndividual({
   const [numeroColumnas, setNumeroColumnas] = useState(pregunta.answers[0]?.length);
   const [numeroFilas, setNumeroFilas] = useState(pregunta.answers.length);
 
-  // const [listaPreguntasHijoParaRender, setListaPreguntasHijoParaRender] = useState([]);
+  const [listaPreguntasHijoParaGuardar, setListaPreguntasHijoParaGuardar] = useState([]);
 
   // Utiliza useEffect para asegurarte de que listaElementosTabla se actualice cuando la pregunta cambie
   useEffect(() => {
@@ -432,6 +432,8 @@ export default function RenderPreguntaIndividual({
           contestadaCorrectamente={false}
           preguntaContestada={false}
           preguntaConstruida={pregunta}
+          listaPreguntasHijoParaGuardar={listaPreguntasHijoParaGuardar}
+          setListaPreguntasHijoParaGuardar={setListaPreguntasHijoParaGuardar}
         />
       );
     };
@@ -764,7 +766,73 @@ export default function RenderPreguntaIndividual({
     //   }
     // };
 
-    const evaluarPreguntaInteractivaSecuencial = (pregunta_contra_la_que_comparar) => {};
+    const evaluarPreguntaInteractivaSecuencial = (pregunta_contra_la_que_comparar) => {
+      let es_correcta = false;
+      let suma_de_cantidad_de_intentos = 0;
+      // Construimos el objeto de answers
+      let user_answers = [];
+      let lista_de_calificaciones_por_pregunta = []; // Guarda en orden si cada obj_pregunta_hijo es correcto o no (este es un arreglo paralelo a listaPreguntasHijoParaGuardar)
+      listaPreguntasHijoParaGuardar.forEach((obj_pregunta_hijo) => {
+        // Recorremos la pregunta hijo y correcta dentro del obj_pregunta_hijo y revisamos que sus atributos de "completedCorrectly" sean true
+        if (
+          obj_pregunta_hijo.pregunta_hijo_correcta &&
+          obj_pregunta_hijo.pregunta_correcta_correcta
+        ) {
+          lista_de_calificaciones_por_pregunta.push(true);
+          suma_de_cantidad_de_intentos +=
+            obj_pregunta_hijo.pregunta_hijo.numberOfAttempts +
+            obj_pregunta_hijo.pregunta_correcta.numberOfAttempts +
+            obj_pregunta_hijo.pregunta_incorrecta.numberOfAttempts;
+        }
+      });
+      if (
+        lista_de_calificaciones_por_pregunta.length === listaPreguntasHijoParaGuardar.length &&
+        lista_de_calificaciones_por_pregunta.every((calificacion) => calificacion === true)
+      ) {
+        es_correcta = true;
+        setPregunta_contestada_correctamente(true);
+        setCantidad_de_intentos(suma_de_cantidad_de_intentos);
+      } else {
+        setPregunta_contestada_correctamente(false);
+      }
+
+      listaPreguntasHijoParaGuardar.forEach((obj_pregunta_hijo) => {
+        user_answers.push({
+          pregunta_hijo: obj_pregunta_hijo.pregunta_hijo._id,
+          pregunta_correcta: obj_pregunta_hijo.pregunta_correcta._id,
+          pregunta_incorrecta: obj_pregunta_hijo.pregunta_incorrecta._id,
+          [obj_pregunta_hijo.pregunta_hijo._id]: obj_pregunta_hijo.pregunta_hijo.answers,
+          [obj_pregunta_hijo.pregunta_correcta._id]: obj_pregunta_hijo.pregunta_correcta.answers,
+          [obj_pregunta_hijo.pregunta_incorrecta._id]:
+            obj_pregunta_hijo.pregunta_incorrecta.answers,
+        });
+      });
+      console.log(`user_answers: ${JSON.stringify(user_answers)}`);
+
+      setData_respuesta(user_answers);
+      // Si no estamos visualizando la pregunta en edición, es decir, si tenemos un objeto obj_actividad_a_renderizar a renderizar, guarda la respuesta en el objeto
+      if (obj_actividad_a_renderizar) {
+        // listaPreguntasHijoParaGuardar.forEach((obj_pregunta_hijo) => {
+        //   user_answers.push({
+        //     pregunta_hijo: obj_pregunta_hijo.pregunta_hijo._id,
+        //     pregunta_correcta: obj_pregunta_hijo.pregunta_correcta._id,
+        //     pregunta_incorrecta: obj_pregunta_hijo.pregunta_incorrecta._id,
+        //     [obj_pregunta_hijo.pregunta_hijo._id]: obj_pregunta_hijo.pregunta_hijo.answers,
+        //     [obj_pregunta_hijo.pregunta_correcta._id]: obj_pregunta_hijo.pregunta_correcta.answers,
+        //     [obj_pregunta_hijo.pregunta_incorrecta._id]:
+        //       obj_pregunta_hijo.pregunta_incorrecta.answers,
+        //   });
+        // });
+        // console.log(`user_answers: ${JSON.stringify(user_answers)}`);
+
+        // Usa 'es_correcta' en lugar de 'pregunta_contestada_correctamente'
+        modificar_pregunta_en_obj_actividad_a_renderizar(
+          pregunta_contra_la_que_comparar._id,
+          user_answers,
+          es_correcta
+        );
+      }
+    };
 
     // Mía
     const evaluarPreguntaCompletarNumerosTabla = (pregunta_contra_la_que_comparar) => {

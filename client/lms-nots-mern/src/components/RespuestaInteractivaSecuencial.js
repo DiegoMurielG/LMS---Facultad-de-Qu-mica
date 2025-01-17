@@ -13,7 +13,9 @@ export default function RespuestaInteractivaSecuencial({
   isDisabled = true, // SI es true, significa que estamos creando la pregunta, si es false significa que la estamos vizualizando para responderla
   contestadaCorrectamente = false,
   preguntaContestada = false,
-  preguntaConstruida = null, // La pregunta que está construida y vamosa  vlizualizar (prop de "pregunta" desde el componente de <RenderPreguntaIndividual />)
+  preguntaConstruida = null, // La pregunta que está construida y vamos a vlizualizar (prop de "pregunta" desde el componente de <RenderPreguntaIndividual />)
+  listaPreguntasHijoParaGuardar = null, //Variable de estado de tipo lista que guardará los datos de la Lista Preguntas Hijo para render. La finalidad de esta variable es que <RenderPreguntaIndividual /> pueda guardar la lista de preguntas hijo para render en la DB. (No pude subir el estado de <RespuestaInteractivaSecuencial /> hacia <RenderPreguntaIndividual /> porque se vuelve recursiva la forma de renderizar las preguntas)
+  setListaPreguntasHijoParaGuardar = null,
 }) {
   // Para la vizualización de la pregunta
   const flechaVacia = (
@@ -503,6 +505,12 @@ export default function RespuestaInteractivaSecuencial({
     setListaPreguntasHijo(updatedList);
   };
 
+  // useEffect que actualiza el valor del prop listaPreguntasHijoParaGuardar (viene desde <RenderPreguntaIndividual />) cada vez que se actualiza la lista de preguntas hijo para render
+  useEffect(() => {
+    // Actualizar la lista de preguntas hijo para guardar
+    setListaPreguntasHijoParaGuardar([...listaPreguntasHijoParaRender]);
+  }, [listaPreguntasHijoParaRender]);
+
   // Se ejecuta cuando estamos vizualizando la pregunta y ayuda a buscar las preguntas a mostrar en la DB y guardarlas en la listaPreguntasHijoParaRender
   useEffect(() => {
     // Buscamos la pregunta en la DB
@@ -975,6 +983,7 @@ export default function RespuestaInteractivaSecuencial({
                               }>
                               <RenderPreguntaIndividual
                                 pregunta={obj_pregunta_hijo.pregunta_incorrecta}
+                                setListaPreguntasHijoParaRender={setListaPreguntasHijoParaRender}
                               />
                             </div>
                           </div>
