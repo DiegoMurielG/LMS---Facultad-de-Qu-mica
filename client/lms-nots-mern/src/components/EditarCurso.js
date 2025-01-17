@@ -713,7 +713,11 @@ export default function EditarCurso() {
                           </svg>
                         </button>
                         <div className="d-flex flex-wrap">
-                          <h3 className="mx-3 my-2 text-nowrap">{maestro.nombre}</h3>
+                          <h3 className="mx-3 my-2 text-nowrap">
+                            {maestro.nombre ||
+                              maestro._id ||
+                              "Error at line:713 in <EditarCurso />"}
+                          </h3>
                         </div>
                       </div>
                     );
