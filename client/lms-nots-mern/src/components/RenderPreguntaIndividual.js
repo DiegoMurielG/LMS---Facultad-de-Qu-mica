@@ -451,6 +451,7 @@ export default function RenderPreguntaIndividual({
         <RespuestaCompletarNumerosTabla
           listaElementosTabla={listaElementosTabla}
           setListaElementosTabla={setListaElementosTabla}
+          valorPuntosPregunta={pregunta.totalScore}
           numeroColumnas={numeroColumnas}
           setNumeroColumnas={setNumeroColumnas}
           numeroFilas={numeroFilas}
@@ -864,12 +865,31 @@ export default function RenderPreguntaIndividual({
                   ({ id }) => id === celda_a_evaluar.id
                 );
 
-              if (celda_contra_la_que_comparar) {
-                // Si las respuestas coinciden, marcamos como correcta
-                if (celda_a_evaluar.respuesta === celda_contra_la_que_comparar.respuesta) {
-                  celda_a_evaluar.correcta = true;
-                } else {
-                  celda_a_evaluar.correcta = false;
+              // Celda de tipo texto
+              if (celda_a_evaluar.texto) {
+                if (celda_contra_la_que_comparar) {
+                  // Si las respuestas coinciden, marcamos como correcta
+                  if (celda_a_evaluar.respuesta === celda_contra_la_que_comparar.respuesta) {
+                    celda_a_evaluar.correcta = true;
+                  } else {
+                    celda_a_evaluar.correcta = false;
+                  }
+                }
+              } else {
+                // Celda de tipo numérico
+                // if (celda_a_evaluar.numerico)
+                if (celda_contra_la_que_comparar) {
+                  // Si las respuestas coinciden, marcamos como correcta
+                  if (
+                    celda_contra_la_que_comparar.respuesta.intervalo[0] <=
+                      parseFloat(celda_a_evaluar.respuesta) &&
+                    parseFloat(celda_a_evaluar.respuesta) <=
+                      celda_contra_la_que_comparar.respuesta.intervalo[1]
+                  ) {
+                    celda_a_evaluar.correcta = true;
+                  } else {
+                    celda_a_evaluar.correcta = false;
+                  }
                 }
               }
             }

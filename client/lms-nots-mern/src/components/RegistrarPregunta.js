@@ -475,7 +475,6 @@ export default function RegistrarPregunta({
           : [],
       questions: listaPreguntasHijo,
     };
-
   };
 
   // useEffect(() => {
@@ -963,6 +962,7 @@ export default function RegistrarPregunta({
             <RespuestaCompletarNumerosTabla
               listaElementosTabla={listaElementosTabla}
               setListaElementosTabla={setListaElementosTabla}
+              valorPuntosPregunta={valorPuntosPregunta}
               numeroColumnas={numeroColumnas}
               setNumeroColumnas={setNumeroColumnas}
               numeroFilas={numeroFilas}

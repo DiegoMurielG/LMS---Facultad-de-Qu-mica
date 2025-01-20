@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 import Swal from "sweetalert2";
+import RespuestaIntervaloNumerico from "./RespuestaIntervaloNumerico";
 
 export default function RespuestaCompletarNumerosTabla({
   listaElementosTabla,
   setListaElementosTabla,
+  valorPuntosPregunta,
   numeroColumnas,
   setNumeroColumnas,
   numeroFilas,
@@ -18,6 +20,9 @@ export default function RespuestaCompletarNumerosTabla({
   console.log(
     `RespuestaCompletarNumerosTabla -> Recive ->listaElementosTabla:`,
     listaElementosTabla
+  );
+  const [listaRespuestasParaIntervaloNumerico, setListaRespuestasParaIntervaloNumerico] = useState(
+    []
   );
 
   const generateUniqueId = (length = 16) => {
@@ -73,10 +78,28 @@ export default function RespuestaCompletarNumerosTabla({
           };
         });
       } else if (type === "radio") {
+        let cantidadDeRespuestasAContestarPorElUsuario = 0;
+        listaElementosTabla.forEach((obj_celda) => {
+          obj_celda.forEach((celda) => {
+            if (celda.completar) {
+              cantidadDeRespuestasAContestarPorElUsuario += 1;
+            }
+          });
+        });
         updatedFila[j] = {
           ...updatedFila[j],
           texto: nombre_input === "texto" ? checked : false,
           numerico: nombre_input === "numerico" ? checked : false,
+          respuesta:
+            nombre_input === "texto"
+              ? ""
+              : nombre_input === "numerico"
+              ? {
+                  valor: valorPuntosPregunta / cantidadDeRespuestasAContestarPorElUsuario,
+                  intervalo: [0, 0],
+                }
+              : "",
+          valor: valorPuntosPregunta / cantidadDeRespuestasAContestarPorElUsuario,
         };
       } else {
         updatedFila[j] = {
@@ -163,36 +186,95 @@ export default function RespuestaCompletarNumerosTabla({
                         return tmpClassName;
                       })()}>
                       <div className="form-floating mb-1 w-100">
-                        <input
-                          type="text"
-                          className={
-                            j === 0 ? "form-control fw-bold text-info-emphasis" : "form-control"
+                        {(() => {
+                          // Cuando estamos colocando la respuesta de tipo "texto" en una celda
+                          if (celda.texto && !celda.numerico) {
+                            return (
+                              <>
+                                <input
+                                  type="text"
+                                  className={
+                                    j === 0
+                                      ? "form-control fw-bold text-info-emphasis"
+                                      : "form-control"
+                                  }
+                                  id={`floatingInput-Body-Tabla-${i + 1}-${j}`}
+                                  placeholder={"Texto"}
+                                  value={celda.respuesta}
+                                  name="respuesta"
+                                  onChange={(e) => handleActualizarCelda(e, i + 1, j)}
+                                />
+                                <label htmlFor={`floatingInput-Header-Tabla-${j}`}>{"Texto"}</label>
+                              </>
+                            );
+                            // Cuando estamos colocando la respuesta de tipo "rango numérico" en una celda
+                          } else if (celda.numerico && !celda.texto) {
+                            return (
+                              <>
+                                {/* <input
+                                  type="text"
+                                  className={
+                                    j === 0
+                                      ? "form-control fw-bold text-info-emphasis"
+                                      : "form-control"
+                                  }
+                                  id={`floatingInput-Body-Tabla-${i + 1}-${j}`}
+                                  placeholder={"Numérico"}
+                                  value={celda.respuesta}
+                                  name="respuesta"
+                                  onChange={(e) => handleActualizarCelda(e, i + 1, j)}
+                                />
+                                <label htmlFor={`floatingInput-Header-Tabla-${j}`}>
+                                  {"Numérico"}
+                                </label> */}
+                                <RespuestaIntervaloNumerico
+                                  listaRespuestas={listaElementosTabla}
+                                  setListaRespuestas={setListaElementosTabla}
+                                  posicionEnTabla={[i + 1, j]}
+                                  valorPuntosPregunta={(() => {
+                                    let cantidadDeRespuestasAContestarPorElUsuario = 0;
+                                    listaElementosTabla.forEach((obj_celda) => {
+                                      obj_celda.forEach((celda) => {
+                                        if (celda.completar) {
+                                          cantidadDeRespuestasAContestarPorElUsuario += 1;
+                                        }
+                                      });
+                                    });
+                                    return (
+                                      valorPuntosPregunta /
+                                      cantidadDeRespuestasAContestarPorElUsuario
+                                    );
+                                  })()}
+                                  isDisabled={isDisabled}
+                                  contestadaCorrectamente={contestadaCorrectamente}
+                                  preguntaContestada={preguntaContestada}
+                                />
+                              </>
+                            );
+                          } else {
+                            // Cuando aún no seleccionamos que tipo de respuesta tendrá la celda que estamos visualizando
+                            return (
+                              <>
+                                <input
+                                  type="text"
+                                  className={
+                                    j === 0
+                                      ? "form-control fw-bold text-info-emphasis"
+                                      : "form-control"
+                                  }
+                                  id={`floatingInput-Body-Tabla-${i + 1}-${j}`}
+                                  placeholder={"Edítame"}
+                                  value={celda.respuesta}
+                                  name="respuesta"
+                                  onChange={(e) => handleActualizarCelda(e, i + 1, j)}
+                                />
+                                <label htmlFor={`floatingInput-Header-Tabla-${j}`}>
+                                  {"Edítame"}
+                                </label>
+                              </>
+                            );
                           }
-                          id={`floatingInput-Body-Tabla-${i + 1}-${j}`}
-                          placeholder={(() => {
-                            if (celda.texto && !celda.numerico) {
-                              return "Texto";
-                            } else if (celda.numerico && !celda.texto) {
-                              return "Numérico";
-                            } else {
-                              return "Edítame!";
-                            }
-                          })()}
-                          value={celda.respuesta}
-                          name="respuesta"
-                          onChange={(e) => handleActualizarCelda(e, i + 1, j)}
-                        />
-                        <label htmlFor={`floatingInput-Header-Tabla-${j}`}>
-                          {(() => {
-                            if (celda.texto && !celda.numerico) {
-                              return "Texto";
-                            } else if (celda.numerico && !celda.texto) {
-                              return "Numérico";
-                            } else {
-                              return "Edítame!";
-                            }
-                          })()}
-                        </label>
+                        })()}
                       </div>
                       {j !== 0 && !celda.aparecer_al_completar_tabla ? (
                         <div className="d-flex flex-column justify-content-center align-items-baseline">
@@ -531,6 +613,11 @@ export default function RespuestaCompletarNumerosTabla({
 
   return (
     <div className="App d-flex flex-column justify-content-center align-items-center">
+      <div className="d-flex justify-content-center align-items-end mb-3">
+        <p className="m-0 me-2">Valor por contestar correctamente: </p>
+        <p className="text-secondary-emphasis fs-3 m-0">{valorPuntosPregunta} puntos</p>
+        {/* <h4 className="m-0">{valorPuntosPregunta} puntos</h4> */}
+      </div>
       {isDisabled ? (
         <>
           <div className="d-flex flex-column justify-content-center align-items-center">

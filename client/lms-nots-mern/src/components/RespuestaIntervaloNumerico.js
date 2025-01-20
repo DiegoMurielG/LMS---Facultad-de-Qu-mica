@@ -5,6 +5,7 @@ export default function RespuestaIntervaloNumerico({
   listaRespuestas,
   setListaRespuestas,
   valorPuntosPregunta,
+  posicionEnTabla = null, // Se utiliza para saber la posición del objeto de la respuesta correspondiente a este componente dentro de la lista de respuestas que se pasa desde el componente <RespuestaCompletarNumerosTabla /> cuando seleccionamos el modo de respuesta numérica en una celda que tiene que contestar el usuario
   isDisabled = true,
   contestadaCorrectamente = false,
   preguntaContestada = false,
@@ -14,14 +15,16 @@ export default function RespuestaIntervaloNumerico({
   // Mostrar y ocultar los límites de la pregunta junto según el valor de isDisables para cuando se renderize la pregrunta para contestar
   // Colocar el input como error (el estilo de error en formulario de Bootstrap) si la respuesta es incorrecta, colcoarlo como bueno si es correcta y mostrar la retroalimentación al final junto con el # de intentos.
   useEffect(() => {
-    setListaRespuestas((lista_pasada) => {
-      return [
-        {
-          valor: 0,
-          intervalo: [0, 0],
-        },
-      ];
-    });
+    if (posicionEnTabla === null) {
+      setListaRespuestas((lista_pasada) => {
+        return [
+          {
+            valor: 0,
+            intervalo: [0, 0],
+          },
+        ];
+      });
+    }
   }, []);
 
   const handleModificarIntervalo = (e, tipo_de_intervalo) => {
@@ -30,39 +33,103 @@ export default function RespuestaIntervaloNumerico({
       const nueva_lista = [...lista_pasada];
       if (nueva_lista[0]) {
         if (tipo_de_intervalo === "Límite inferior") {
-          if (nuevoValor > nueva_lista[0].intervalo[1]) {
-            Swal.fire({
-              title: "Ingrese un valor válido para el límite numérico inferior de la pregunta",
-              text: `El límite numérico inferior para esta pregunta debe de ser igual o menor a ${nueva_lista[0].intervalo[1]}.`,
-              showCancelButton: false,
-              confirmButtonText: "Continuar",
-              icon: "warning",
-            });
-            return lista_pasada;
+          if (posicionEnTabla != null) {
+            if (
+              nuevoValor >
+              nueva_lista[posicionEnTabla[0]][posicionEnTabla[1]].respuesta.intervalo[1]
+            ) {
+              Swal.fire({
+                title: "Ingrese un valor válido para el límite numérico inferior de la pregunta",
+                text: `El límite numérico inferior para esta pregunta debe de ser igual o menor a ${
+                  nueva_lista[posicionEnTabla[0]][posicionEnTabla[1]].respuesta.intervalo[1]
+                }.`,
+                showCancelButton: false,
+                confirmButtonText: "Continuar",
+                icon: "warning",
+              });
+              return lista_pasada;
+            }
+            nueva_lista[posicionEnTabla[0]][posicionEnTabla[1]] = {
+              ...nueva_lista[posicionEnTabla[0]][posicionEnTabla[1]],
+              respuesta: {
+                ...nueva_lista[posicionEnTabla[0]][posicionEnTabla[1]].respuesta,
+                intervalo: [
+                  nuevoValor,
+                  nueva_lista[posicionEnTabla[0]][posicionEnTabla[1]].respuesta.intervalo[1],
+                ],
+              },
+            };
+          } else {
+            if (nuevoValor > nueva_lista[0].intervalo[1]) {
+              Swal.fire({
+                title: "Ingrese un valor válido para el límite numérico inferior de la pregunta",
+                text: `El límite numérico inferior para esta pregunta debe de ser igual o menor a ${nueva_lista[0].intervalo[1]}.`,
+                showCancelButton: false,
+                confirmButtonText: "Continuar",
+                icon: "warning",
+              });
+              return lista_pasada;
+            }
+            // Cambiamos el valor del intervalo en la lista proporcionada
+            nueva_lista[0] = {
+              ...nueva_lista[0],
+              intervalo: [nuevoValor, nueva_lista[0].intervalo[1]],
+            };
           }
 
-          nueva_lista[0] = {
-            ...nueva_lista[0],
-            intervalo: [nuevoValor, nueva_lista[0].intervalo[1]],
-          };
+          // Modificamos el objeto guardado en respuesta dentro de la celda (pq este componente está siendo llamado por el de <RespuestaCompletarNumerosTabla />) en la posición correspondiente
+          if (posicionEnTabla != null) {
+          } else {
+          }
         } else if (tipo_de_intervalo === "Límite superior") {
-          if (nuevoValor < nueva_lista[0].intervalo[0]) {
-            Swal.fire({
-              title: "Ingrese un valor válido para el límite numérico superior de la pregunta",
-              text: `El límite numérico superior para esta pregunta debe de ser igual o mayor a ${nueva_lista[0].intervalo[0]}.`,
-              showCancelButton: false,
-              confirmButtonText: "Continuar",
-              icon: "warning",
-            });
-            return lista_pasada;
-          }
+          if (posicionEnTabla != null) {
+            if (
+              nuevoValor <
+              nueva_lista[posicionEnTabla[0]][posicionEnTabla[1]].respuesta.intervalo[0]
+            ) {
+              Swal.fire({
+                title: "Ingrese un valor válido para el límite numérico superior de la pregunta",
+                text: `El límite numérico superior para esta pregunta debe de ser igual o mayor a ${
+                  nueva_lista[posicionEnTabla[0]][posicionEnTabla[1]].respuesta.intervalo[0]
+                }.`,
+                showCancelButton: false,
+                confirmButtonText: "Continuar",
+                icon: "warning",
+              });
+              return lista_pasada;
+            }
 
-          nueva_lista[0] = {
-            ...nueva_lista[0],
-            intervalo: [nueva_lista[0].intervalo[0], nuevoValor],
-          };
+            // Modificamos el objeto guardado en respuesta dentro de la celda (pq este componente está siendo llamado por el de <RespuestaCompletarNumerosTabla />) en la posición correspondiente
+            console.log(nueva_lista[posicionEnTabla[0]][posicionEnTabla[1]]);
+            nueva_lista[posicionEnTabla[0]][posicionEnTabla[1]] = {
+              ...nueva_lista[posicionEnTabla[0]][posicionEnTabla[1]],
+              respuesta: {
+                ...nueva_lista[posicionEnTabla[0]][posicionEnTabla[1]].respuesta,
+                intervalo: [
+                  nueva_lista[posicionEnTabla[0]][posicionEnTabla[1]].respuesta.intervalo[0],
+                  nuevoValor,
+                ],
+              },
+            };
+          } else {
+            if (nuevoValor < nueva_lista[0].intervalo[0]) {
+              Swal.fire({
+                title: "Ingrese un valor válido para el límite numérico superior de la pregunta",
+                text: `El límite numérico superior para esta pregunta debe de ser igual o mayor a ${nueva_lista[0].intervalo[0]}.`,
+                showCancelButton: false,
+                confirmButtonText: "Continuar",
+                icon: "warning",
+              });
+              return lista_pasada;
+            }
+            nueva_lista[0] = {
+              ...nueva_lista[0],
+              intervalo: [nueva_lista[0].intervalo[0], nuevoValor],
+            };
+          }
         }
       }
+      // console.log(nueva_lista);
       return nueva_lista;
     });
   };
@@ -129,7 +196,16 @@ export default function RespuestaIntervaloNumerico({
               id="floatingInput-respuesta-numerica-limite-inferior"
               data-bs-toggle="tooltip"
               data-bs-title="El límite superior se considera dentro del rango de evaluación"
-              value={listaRespuestas[0]?.intervalo[0] || 0}
+              value={(() => {
+                if (posicionEnTabla != null) {
+                  return (
+                    listaRespuestas[posicionEnTabla[0]][posicionEnTabla[1]]?.respuesta
+                      .intervalo[0] || 0
+                  );
+                } else {
+                  return listaRespuestas[0]?.intervalo[0] || 0;
+                }
+              })()}
               onChange={(e) => {
                 handleModificarIntervalo(e, "Límite inferior");
               }}
@@ -147,7 +223,16 @@ export default function RespuestaIntervaloNumerico({
               id="floatingInput-respuesta-numerica-limite-superior"
               data-bs-toggle="tooltip"
               data-bs-title="Así verá el usuario el campo para responder"
-              value={listaRespuestas[0]?.intervalo[1] || 0}
+              value={(() => {
+                if (posicionEnTabla != null) {
+                  return (
+                    listaRespuestas[posicionEnTabla[0]][posicionEnTabla[1]]?.respuesta
+                      .intervalo[1] || 0
+                  );
+                } else {
+                  return listaRespuestas[0]?.intervalo[1] || 0;
+                }
+              })()}
               onChange={(e) => {
                 handleModificarIntervalo(e, "Límite superior");
               }}
