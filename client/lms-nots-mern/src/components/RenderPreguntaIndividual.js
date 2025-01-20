@@ -119,6 +119,13 @@ export default function RenderPreguntaIndividual({
 
   const [listaPreguntasHijoParaGuardar, setListaPreguntasHijoParaGuardar] = useState([]);
 
+  useEffect(() => {
+    if (pregunta.typeOfQuestion === "Completar número en tabla") {
+      setNumeroFilas(pregunta.answers.length);
+      setNumeroColumnas(pregunta.answers[0]?.length);
+    }
+  }, [listaElementosTabla]);
+
   // Utiliza useEffect para asegurarte de que listaElementosTabla se actualice cuando la pregunta cambie
   useEffect(() => {
     if (pregunta.typeOfQuestion === "Completar número en tabla" && !pregunta.completedCorrectly) {
