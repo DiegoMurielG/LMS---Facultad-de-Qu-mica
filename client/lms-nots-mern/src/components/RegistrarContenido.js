@@ -57,7 +57,7 @@ export default function RegistrarContenido({
     let tamanioNombre = 6;
     let tamanioSrc = 7;
     let tamanioFinSrc = 4;
-
+    
     for (let i = 0; i < cantidadDeImagenes; i++) {
       let indexNombreImg = tmpData_contenido.search(/name="/) + tamanioNombre;
       let indexFinNombreImg = tmpData_contenido.search(/" src="/);

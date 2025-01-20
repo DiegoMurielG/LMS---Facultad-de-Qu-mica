@@ -183,65 +183,71 @@ export default function RespuestaIntervaloNumerico({
             ? "d-block d-flex flex-column justify-content-center align-items-center"
             : "d-none d-flex flex-column justify-content-center align-items-center"
         }>
-        <div className="w-100 mb-2">
-          <p className="m-0">Ingrese los límites numéricos válidos para su respuesta.</p>
-        </div>
-        <div className="d-flex justify-content-center align-items-center">
-          <div className="form-floating me-1">
-            <input
-              type="number"
-              className="form-control"
-              placeholder="Límite inferior"
-              disabled={!isDisabled}
-              id="floatingInput-respuesta-numerica-limite-inferior"
-              data-bs-toggle="tooltip"
-              data-bs-title="El límite superior se considera dentro del rango de evaluación"
-              value={(() => {
-                if (posicionEnTabla != null) {
-                  return (
-                    listaRespuestas[posicionEnTabla[0]][posicionEnTabla[1]]?.respuesta
-                      .intervalo[0] || 0
-                  );
-                } else {
-                  return listaRespuestas[0]?.intervalo[0] || 0;
-                }
-              })()}
-              onChange={(e) => {
-                handleModificarIntervalo(e, "Límite inferior");
-              }}
-            />
-            <label htmlFor="floatingInput-respuesta-numerica-limite-inferior">
-              Límite inferior
-            </label>
-          </div>
-          <div className="form-floating ms-1">
-            <input
-              type="number"
-              className="form-control"
-              placeholder="Límite superior"
-              disabled={!isDisabled}
-              id="floatingInput-respuesta-numerica-limite-superior"
-              data-bs-toggle="tooltip"
-              data-bs-title="Así verá el usuario el campo para responder"
-              value={(() => {
-                if (posicionEnTabla != null) {
-                  return (
-                    listaRespuestas[posicionEnTabla[0]][posicionEnTabla[1]]?.respuesta
-                      .intervalo[1] || 0
-                  );
-                } else {
-                  return listaRespuestas[0]?.intervalo[1] || 0;
-                }
-              })()}
-              onChange={(e) => {
-                handleModificarIntervalo(e, "Límite superior");
-              }}
-            />
-            <label htmlFor="floatingInput-respuesta-numerica-limite-superior">
-              Límite superior
-            </label>
-          </div>
-        </div>
+        {isDisabled ? (
+          <>
+            <div className="w-100 mb-2">
+              <p className="m-0">Ingrese los límites numéricos válidos para su respuesta.</p>
+            </div>
+            <div className="d-flex justify-content-center align-items-center">
+              <div className="form-floating me-1">
+                <input
+                  type="number"
+                  className="form-control"
+                  placeholder="Límite inferior"
+                  disabled={!isDisabled}
+                  id="floatingInput-respuesta-numerica-limite-inferior"
+                  data-bs-toggle="tooltip"
+                  data-bs-title="El límite superior se considera dentro del rango de evaluación"
+                  value={(() => {
+                    if (posicionEnTabla != null) {
+                      return (
+                        listaRespuestas[posicionEnTabla[0]][posicionEnTabla[1]]?.respuesta
+                          .intervalo[0] || 0
+                      );
+                    } else {
+                      return listaRespuestas[0]?.intervalo[0] || 0;
+                    }
+                  })()}
+                  onChange={(e) => {
+                    handleModificarIntervalo(e, "Límite inferior");
+                  }}
+                />
+                <label htmlFor="floatingInput-respuesta-numerica-limite-inferior">
+                  Límite inferior
+                </label>
+              </div>
+              <div className="form-floating ms-1">
+                <input
+                  type="number"
+                  className="form-control"
+                  placeholder="Límite superior"
+                  disabled={!isDisabled}
+                  id="floatingInput-respuesta-numerica-limite-superior"
+                  data-bs-toggle="tooltip"
+                  data-bs-title="Así verá el usuario el campo para responder"
+                  value={(() => {
+                    if (posicionEnTabla != null) {
+                      return (
+                        listaRespuestas[posicionEnTabla[0]][posicionEnTabla[1]]?.respuesta
+                          .intervalo[1] || 0
+                      );
+                    } else {
+                      return listaRespuestas[0]?.intervalo[1] || 0;
+                    }
+                  })()}
+                  onChange={(e) => {
+                    handleModificarIntervalo(e, "Límite superior");
+                  }}
+                />
+                <label htmlFor="floatingInput-respuesta-numerica-limite-superior">
+                  Límite superior
+                </label>
+              </div>
+            </div>
+          </>
+        ) : (
+          <></>
+        )}
       </div>
     </div>
   );
