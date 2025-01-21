@@ -38,6 +38,15 @@ export default function RenderPreguntaIndividual({
 }) {
   const [data_respuesta, setData_respuesta] = useState("");
   const [pregunta_contestada_correctamente, setPregunta_contestada_correctamente] = useState(false);
+
+  useEffect(() => {
+    if (pregunta._id !== previousPreguntaId) {
+      setPregunta_contestada_correctamente(false);
+      setPreviousPreguntaId(pregunta._id);
+    }
+  }, [pregunta]);
+
+  const [previousPreguntaId, setPreviousPreguntaId] = useState(pregunta._id);
   const [cantidad_de_intentos, setCantidad_de_intentos] = useState(0);
   // console.log(`pregunta.answers:`, pregunta.answers);
   // Arreglo de respuestas de opción múltiple a utilizar
