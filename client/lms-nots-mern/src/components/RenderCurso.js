@@ -29,6 +29,10 @@ export default function RenderCurso() {
     totalScore: 0,
     answeredScore: 0,
   });
+  const [navbar_visibility_clases, setNavbar_visibility_clases] = useState(
+    "nav nav-underline d-flex flex-column fs-3 d-none"
+  );
+  const visibility_on_clases = "d-block";
 
   const navigate = useNavigate();
 
@@ -811,15 +815,47 @@ export default function RenderCurso() {
     Finalizar: renderFinalizarCurso(),
   };
 
+  const handleNavbar = () => {
+    if (navbar_visibility_clases.includes(visibility_on_clases)) {
+      setNavbar_visibility_clases(
+        navbar_visibility_clases.replace(visibility_on_clases, "") + "d-none"
+      );
+    } else {
+      setNavbar_visibility_clases(
+        (navbar_visibility_clases + visibility_on_clases).replace("d-none", "")
+      );
+    }
+  };
+
   return (
     <div className="container d-flex flex-column justify-content-around align-items-start w-100 m-0">
       {/* Menú lateral de navegación del conenido del curso */}
-      <nav className="navbar navbar-expand-lg bg-body-tertiary sticky-top">
-        <div className="container-fluid">
-          <a className="navbar-brand" href="#">
-            Navegación
-          </a>
-          <button
+      <nav className="navbar navbar-expand-lg bg-body-tertiary sticky-top w-50 border border-secondary rounded-3">
+        <div className="container-fluid d-flex flex-column justify-content-center align-items-center">
+          <div className="d-flex flex justify-content-evenly align-items-center w-100">
+            <a className="navbar-brand" href="#">
+              Navegación
+            </a>
+            <button
+              type="button"
+              className="btn rounded-3 p-2 object-fit-contain fs-1 d-flex justify-content-center align-content-center"
+              style={{ aspectRatio: "1/1" }}
+              onClick={handleNavbar}>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="1em"
+                height="1em"
+                fill="currentColor"
+                className="bi bi-list"
+                viewBox="0 0 16 16">
+                <path
+                  fillRule="evenodd"
+                  d="M2.5 12a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5m0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5m0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5"
+                />
+              </svg>
+            </button>
+          </div>
+          {/* <button 
             className="navbar-toggler"
             type="button"
             data-bs-toggle="collapse"
@@ -828,16 +864,18 @@ export default function RenderCurso() {
             aria-expanded="false"
             aria-label="Toggle navigation">
             <span className="navbar-toggler-icon"></span>
-          </button>
-          <div className="collapse navbar-collapse" id="navbarNav">
-            <ul className="navbar-nav flex-column">
+          </button> */}
+          {/* <div className="collapse navbar-collapse" id="navbarNav"> */}
+          <div className={navbar_visibility_clases} id="navbarNav">
+            <ul className="navbar-nav d-flex flex-column justify-content-center align-items-start">
               {/* Sección de portada el curso */}
               <li className="nav-item my-1">
                 {/* <a className="nav-link active" aria-current="page" href="#">
                   Home
                 </a> */}
                 <button
-                  className="btn btn-link text-secondary-emphasis"
+                  // className="btn btn-link text-secondary-emphasis"
+                  className="btn btn-outline-light btn-lg"
                   type="button"
                   onClick={(e) => {
                     e.preventDefault();
@@ -855,7 +893,7 @@ export default function RenderCurso() {
               lista_secciones ? (
                 lista_secciones.map((obj_seccion_individual, index) => {
                   return (
-                    <li className="nav-item my-1 w-100" key={`btn-navegacion-${index}`}>
+                    <li className="nav-item mt-3" key={`btn-navegacion-${index}`}>
                       {/* <button
                         className="btn btn-link text-secondary-emphasis"
                         type="button"
@@ -898,9 +936,10 @@ export default function RenderCurso() {
               )}
 
               {/* Sección de finalizar el curso */}
-              <li className="nav-item my-1">
+              <li className="nav-item mt-1">
                 <button
-                  className="btn btn-link text-secondary-emphasis"
+                  className="btn btn-outline-light btn-lg"
+                  // className="btn btn-link text-secondary-emphasis"
                   type="button"
                   onClick={(e) => {
                     e.preventDefault();
