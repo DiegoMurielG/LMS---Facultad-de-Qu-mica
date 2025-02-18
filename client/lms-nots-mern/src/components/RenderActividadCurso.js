@@ -8,7 +8,8 @@ export default function RenderActividadCurso({
   return (
     <div>
       <button
-        className="btn btn-link text-secondary-emphasis"
+        className="btn btn-outline-light btn-lg"
+        // className="btn btn-link text-secondary-emphasis"
         type="button"
         onClick={(e) => {
           e.preventDefault();
