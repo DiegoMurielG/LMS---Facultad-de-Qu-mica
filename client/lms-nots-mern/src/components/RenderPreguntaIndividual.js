@@ -55,6 +55,15 @@ export default function RenderPreguntaIndividual({
   );
   // Arreglo de elementos de la tabla a completar
   const [listaElementosTabla, setListaElementosTabla] = useState(pregunta.answers);
+
+  // useEffect que mantiene el front end en sincronización con el último estado de estas variables, según el tipo de pregunta es la variables que se actualiza con pregunta.answers, de esta forma evitamos conflicots con los datos
+  useEffect(() => {
+    if (pregunta.typeOfQuestion === "Completar número en tabla") {
+      setListaElementosTabla(pregunta.answers);
+    } else if (pregunta.typeOfQuestion === "Opción múltiple") {
+      setListaRespuestasOpcionMultiple(pregunta.answers);
+    }
+  }, [pregunta]);
   // let tmpPregunta = <></>;
 
   // const [listaElementosTabla, setListaElementosTabla] = useState(() => {
