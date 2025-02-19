@@ -724,7 +724,14 @@ export default function RenderCurso() {
                     <RenderPreguntaIndividual
                       pregunta={obj_pregunta_a_renderizar}
                       obj_actividad_a_renderizar={obj_actividad_a_renderizar}
-                      setObj_actividad_a_renderizar={setObj_actividad_a_renderizar}
+                      // The state update is performed using a functional update form, which takes the previous state (prevState) as an argument. The spread operator (...) is used to create a new state object that includes all properties from the previous state and the new activity object. This ensures that any existing properties in the state are preserved, and only the properties in the new activity object are updated or added.
+                      // This approach is useful for maintaining immutability in state updates, which is a key principle in React to ensure predictable state management and efficient re-rendering of components.
+                      setObj_actividad_a_renderizar={(newActividad) =>
+                        setObj_actividad_a_renderizar((prevState) => ({
+                          ...prevState,
+                          ...newActividad,
+                        }))
+                      }
                       // cantidadPreguntasRespondidas={cantidadPreguntasRespondidas}
                       // setCantidadPreguntasRespondidas={setCantidadPreguntasRespondidas}
                     />

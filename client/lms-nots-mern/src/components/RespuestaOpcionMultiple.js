@@ -121,7 +121,7 @@ export default function RespuestaOpcionMultiple({
                   if (!isDisabled) {
                     return (
                       <div
-                        key={respuesta.id}
+                        key={`${respuesta.id} - ${index}`}
                         className="d-flex flex-column justify-content-center align-items-center bg-body-tertiary rounded-2 border-light-subtle border-2 mx-3 my-1 p-1">
                         <li>
                           <div>
