@@ -681,6 +681,7 @@ export default function EditarCurso() {
                 Maestros inscritos:
               </th>
               <td className="text-start">
+                {console.log(`maestros: ${JSON.stringify(maestros)}`)}
                 {maestros.length > 0 ? (
                   maestros.map((maestro, index) => {
                     // datos_cursos.enrolled_users?.length > 0 ? (
